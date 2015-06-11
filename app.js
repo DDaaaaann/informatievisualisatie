@@ -1,13 +1,17 @@
 (function () {
     "use strict";
 
+    var data2000 = [];
+
     var width = 1200,
         height = 700;
 
+
+    // To scale and translate map
     var projection = d3.geo.mercator()
         .scale(600)
         .translate([width/3, height/2 +600])
-        .precision(.1);
+        .precision(0.1);
 
     var div = d3.select("body").append("div")
         .attr("class", "tooltip")
@@ -46,6 +50,37 @@
         826 // United Kingdom
     ];
 
+    // var countryToCode = {
+    //         "Austria" : "40", // Austria
+    //         "Belgium" : "56", // Belgium
+    //         "Bulgaria" : "100", // Bulgaria
+    //         "Croatia" : "191", // Croatia
+    //         "Cyprus" : "196", // Cyprus
+    //         "Czech Republic" : "203", // Czech Republic
+    //         "Denmark" : "208", // Denmark
+    //         "Estonia" : "233", // Estonia
+    //         "Finland" : "246", // Finland
+    //         "France" : "250", // France
+    //         "Germany" : "276", // Germany
+    //         "Greece" : "300", // Greece
+    //         "Hungary" : "348", // Hungary
+    //         "Ireland" : "372", // Ireland
+    //         "Italy" : "380", // Italy
+    //         "Latvia" : "428", // Latvia
+    //         "Lithuania" : "440", // Lithuania
+    //         "Luxembourg" : "442", // Luxembourg
+    //         "Malta" : "470", // Malta
+    //         "Netherlands" : "528", // Netherlands
+    //         "Poland" : "616", // Poland
+    //         "Portugal" : "620", // Portugal
+    //         "Romania" : "642", // Romania
+    //         "Slovakia" : "703", // Slovakia
+    //         "Slovenia" : "705", // Slovenia
+    //         "Spain" : "724", // Spain
+    //         "Sweden" : "752", // Sweden
+    //         "United Kingdom" : "826" // United Kingdom
+    //     ];
+
     function isEuCountry(datum) {
         var code = parseInt(datum.properties.iso_n3, 10);
         return eu.indexOf(code) > -1;
@@ -61,12 +96,29 @@
         var eu = topojson.feature(europe, europe.objects.europe),
             countries = eu.features;
 
+        d3.csv("unemployment/Unemployment.csv", function(error, data) {
 
+        for (var i = 0; i < data.length; i++) {
+            if (data[i]['TIME'] === "2000") {
+                data2000.push(data[i]);
+            }
+        }
 
-        countries.forEach(function(d) {
+        for (var i = 0; i < data2000.length; i++) {
+            console.log('DATA 2000 ' + data2000[i]['GEO']);
+            for (var j = 0; j < eu.length; j++) {
+                console.log('iets');
+                console.log('EU ' + eu['features'][j]['properties']['name']);
+                if (eu['features'][j]['properties']['name'] === data2000[i]['GEO']) {
+                    eu['features'][j]['unemploymentData'] = data2000[i];
+                }
+            }
+        }
 
+            // data.forEach(function(d) {
+            //     console.log(d.GEO)
+            // });
 
-            // console.log(d.properties )
 
         });
 
@@ -78,7 +130,7 @@
         //     console.log(t)
         // projection.scale(1).translate(1,1);
 
-        console.log(countries)
+        console.log(eu);
 
         svg.selectAll("path")
             .data(countries)
