@@ -50,40 +50,16 @@
         826 // United Kingdom
     ];
 
-    // var countryToCode = {
-    //         "Austria" : "40", // Austria
-    //         "Belgium" : "56", // Belgium
-    //         "Bulgaria" : "100", // Bulgaria
-    //         "Croatia" : "191", // Croatia
-    //         "Cyprus" : "196", // Cyprus
-    //         "Czech Republic" : "203", // Czech Republic
-    //         "Denmark" : "208", // Denmark
-    //         "Estonia" : "233", // Estonia
-    //         "Finland" : "246", // Finland
-    //         "France" : "250", // France
-    //         "Germany" : "276", // Germany
-    //         "Greece" : "300", // Greece
-    //         "Hungary" : "348", // Hungary
-    //         "Ireland" : "372", // Ireland
-    //         "Italy" : "380", // Italy
-    //         "Latvia" : "428", // Latvia
-    //         "Lithuania" : "440", // Lithuania
-    //         "Luxembourg" : "442", // Luxembourg
-    //         "Malta" : "470", // Malta
-    //         "Netherlands" : "528", // Netherlands
-    //         "Poland" : "616", // Poland
-    //         "Portugal" : "620", // Portugal
-    //         "Romania" : "642", // Romania
-    //         "Slovakia" : "703", // Slovakia
-    //         "Slovenia" : "705", // Slovenia
-    //         "Spain" : "724", // Spain
-    //         "Sweden" : "752", // Sweden
-    //         "United Kingdom" : "826" // United Kingdom
-    //     ];
-
     function isEuCountry(datum) {
         var code = parseInt(datum.properties.iso_n3, 10);
         return eu.indexOf(code) > -1;
+    }
+
+    function getColor(value){
+        console.log(value);
+        //value from 0 to 1
+        var hue=((1-value)*120).toString(10);
+        return ["hsl(",hue,",100%,50%)"].join("");
     }
 
     d3.json("eu.json", function (error, europe) {
@@ -97,51 +73,33 @@
             countries = eu.features;
 
         d3.csv("unemployment/Unemployment.csv", function(error, data) {
-
-        for (var i = 0; i < data.length; i++) {
-            if (data[i]['TIME'] === "2000") {
-                data2000.push(data[i]);
-            }
-        }
-
-        for (var i = 0; i < data2000.length; i++) {
-            console.log('DATA 2000 ' + data2000[i]['GEO']);
-            for (var j = 0; j < eu.length; j++) {
-                console.log('iets');
-                console.log('EU ' + eu['features'][j]['properties']['name']);
-                if (eu['features'][j]['properties']['name'] === data2000[i]['GEO']) {
-                    eu['features'][j]['unemploymentData'] = data2000[i];
+            for (var i = 0; i < data.length; i++) {
+                if (data[i]['TIME'] === "2000") {
+                    data2000.push(data[i]);
                 }
             }
-        }
 
-            // data.forEach(function(d) {
-            //     console.log(d.GEO)
-            // });
+            for (var i = 0; i < data2000.length; i++) {
+                for (var j = 0; j < countries.length; j++) {
+                    if (countries[j]['properties']['name'] === data2000[i]['GEO']) {
+                        if (!countries[j].hasOwnProperty('unemploymentData')) {
+                            countries[j].unemploymentData = [];
+                        }
 
+                        countries[j].unemploymentData.push(data2000[i]);
+                    }
+                }
+            }
 
-        });
-
-
-        // var b = path.bounds(eu),
-        //     s = 0.95 / Math.max((b[1][0] - b[0][0]) / width, (b[1][1] - b[0][1]) / height),
-        //     t = [(width - s * (b[1][0] + b[0][0])) / 2, (height - s * (b[1][1] + b[0][1])) / 2];
-        //     console.log(s)
-        //     console.log(t)
-        // projection.scale(1).translate(1,1);
-
-        console.log(eu);
-
-        svg.selectAll("path")
+            svg.selectAll("path")
             .data(countries)
-          .enter().append("path")
+            .enter().append("path")
             .attr("d", path)
             .attr("class", "country")
-            .classed("eu-country", isEuCountry)
+            .style("fill", function(d) { console.log(d); if (d.hasOwnProperty('unemploymentData')) { console.log('has property'); return getColor(d['unemploymentData'][0]['Value']); } else { console.log('has no property'); return getColor(0); } })
+            .classed("eu-country", isEuCountry);
 
-
-
-        svg.selectAll(".eu-country")
+            svg.selectAll(".eu-country")
             .on("mouseover", function (d) {
                 div.transition()
                     .duration(200)
@@ -149,12 +107,12 @@
                 div .html(d.properties.name)
                     .style("left", (d3.event.pageX) + "px")
                     .style("top", (d3.event.pageY - 28) + "px");
-                })
-
-             .on("mouseout", function(d) {
+            })
+            .on("mouseout", function(d) {
             div.transition()
                 .duration(500)
                 .style("opacity", 0);
+            });
         });
     });
 
