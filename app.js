@@ -2,8 +2,7 @@
     "use strict";
 
 
-    var dataYear = [];
-    var year = 2000
+    var year = 2000;
     var width = 1200,
         height = 700;
 
@@ -86,41 +85,41 @@
 
 
             d3.csv("unemployment/Unemployment.csv", function(error, data) {
-
-                function updateYear(nYear) {
-                    dataYear = [];
-                    // adjust the text on the range slider
-                    d3.select("#nYear-value").text(nYear);
-                    d3.select("#nYear").property("value", nYear);
-                    dataYear = []
-                    for (var i = 0; i < data.length; i++) {
-                        if (data[i]['TIME'] === nYear.toString(10)) {
-                            dataYear.push(data[i]);
-                        }
-                    }
-
-                    eu = topojson.feature(europe, europe.objects.europe),
+                eu = topojson.feature(europe, europe.objects.europe),
                         countries = eu.features;
-                    for (var i = 0; i < dataYear.length; i++) {
+                    for (var i = 0; i < data.length; i += 9) {
                         for (var j = 0; j < countries.length; j++) {
-                            if (countries[j]['properties']['name'] === dataYear[i]['GEO']) {
+                            if (countries[j]['properties']['name'] === data[i]['GEO']) {
 
                                 if (!countries[j].hasOwnProperty('unemploymentData')) {
                                     countries[j].unemploymentData = [];
 
                                 }
-                                countries[j].unemploymentData.push(dataYear[i]);
+                                countries[j].unemploymentData[data[i]['TIME']] = [9];
+                                for (var k = i; k < i + 9; k++) {
+                                    countries[j].unemploymentData[data[i]['TIME']][k - i] = data[k];
+
+                                }
                             }
                         }
 
                     }
-                    updateMap(countries)
+                updateMap(countries, year);
+
+                function updateYear(nYear) {
+                    // var unEmpData = data;
+                    // adjust the text on the range slider
+                    d3.select("#nYear-value").text(nYear);
+                    d3.select("#nYear").property("value", nYear);
+                    year = nYear;
+                    updateMap(countries, year);
                 }
 
-                function updateMap(countries){
+
+                function updateMap(countries, year){
                     var firstDrawing;
 
-                    if (document.getElementsByClassName("countries-svg").length === 0) { 
+                    if (document.getElementsByClassName("countries-svg").length === 0) {
                         var svg = d3.select("#container").append("svg")
                                              .attr("width", width)
                                              .attr("height", height)
@@ -131,21 +130,21 @@
                     }
 
                     console.log(countries);
-                    
+
                     if (firstDrawing) {
                         svg.selectAll("path")
                             .data(countries)
                             .enter().append("path")
                             .attr("d", path)
                             .attr("class", "country")
-                            .style("fill", function(d) { if (d.hasOwnProperty('unemploymentData')) { return getColor(d['unemploymentData'][0]['Value']); } else { return getColor(0); } })
+                            .style("fill", function(d) { if (d.hasOwnProperty('unemploymentData')) { return getColor(d['unemploymentData'][year][0]['Value']); } else { return getColor(0); } })
                             .classed("eu-country", isEuCountry);
                     } else {
                         var paths = d3.selectAll("svg.countries-svg path").data(countries);
                         paths.transition()
                             .duration(250)
-                            .style("fill", function(d) { if (d.hasOwnProperty('unemploymentData')) { return getColor(d['unemploymentData'][0]['Value']); } else { return getColor(0); } });
-                        
+                            .style("fill", function(d) { if (d.hasOwnProperty('unemploymentData')) { return getColor(d['unemploymentData'][year][0]['Value']); } else { return getColor(0); } });
+
                         paths.classed("eu-country", isEuCountry);
                     }
 
@@ -176,7 +175,7 @@
                         div.transition()
                             .duration(200)
                             .style("opacity", .9);
-                        var percent = d['unemploymentData'][0]['Value'];
+                        var percent = d['unemploymentData'][year][0]['Value'];
 
                         if(percent === ":") {
                             percent = "No data available";
@@ -200,6 +199,8 @@
 
                 function drawChart() {
                     div.html("TEST")
+                        .style("float", "right")
+;
                 }
 
                 d3.select("#nYear").on("input", function() {
