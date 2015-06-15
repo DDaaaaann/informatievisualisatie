@@ -7,6 +7,9 @@
       .country {
         fill: gray;
       }
+      body {
+        background-color: #FFF;
+      }
 
 
       div.tooltip {
@@ -24,7 +27,15 @@
     }
 
     .header {
-      color: black;
+      color: #e34a33;
+      background-color: #333333;
+      padding: 10px;
+      font-family: sans-serif;
+      font-size: 20px;
+    }
+
+    #container {
+
     }
 
 .eu-country {
@@ -35,12 +46,13 @@
 <body>
     <div id="container">
       <p>
-        <h2 class="header">Unemployment in europe in the year: </h2>
-        <label for="nYear"
+        <div class="header">Unemployment in europe in the year:
+          <label for="nYear"
           style="display: inline-block; width: 240px; text-align: right">
-            <span id="nYear-value" class="header">…</span>
+            <span id="nYear-value">…</span>
         </label>
         <input type="range" min="2000" max="2014" id="nYear">
+        </div>
       </p>
     </div>
     <script src="d3/d3.js"></script>
