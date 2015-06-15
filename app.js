@@ -66,12 +66,11 @@
         //value from 0 to 1
         // var hue=((1-(4/value))*100).toString(10);
         var hue=((600*(value/100))).toString(10);
-        console.log(hue)
         // of > 0
         if(hue > -1) {
             return ["hsl(3,",hue,"%,45%)"].join("");
         } else {
-            return "gray";
+            return "black";
         }
 
     }
@@ -99,10 +98,9 @@
                     for (var i = 0; i < data.length; i++) {
                         if (data[i]['TIME'] === nYear.toString(10)) {
                             dataYear.push(data[i]);
-                            console.log("year: " + nYear);
                         }
                     }
-                    console.log(dataYear)
+
                     eu = topojson.feature(europe, europe.objects.europe),
                         countries = eu.features;
                     for (var i = 0; i < dataYear.length; i++) {
@@ -122,52 +120,66 @@
                 }
 
                 function updateMap(countries){
-                    d3.select("svg")
-                        .remove();
+                    var firstDrawing;
 
-                    var svg = d3.select("#container").append("svg")
-                                         .attr("width", width)
-                                         .attr("height", height);
+                    if (document.getElementsByClassName("countries-svg").length === 0) { 
+                        var svg = d3.select("#container").append("svg")
+                                             .attr("width", width)
+                                             .attr("height", height)
+                                             .classed("countries-svg", true);
+                        firstDrawing = true;
+                    } else {
+                        firstDrawing = false;
+                    }
 
                     console.log(countries);
+                    
+                    if (firstDrawing) {
+                        svg.selectAll("path")
+                            .data(countries)
+                            .enter().append("path")
+                            .attr("d", path)
+                            .attr("class", "country")
+                            .style("fill", function(d) { if (d.hasOwnProperty('unemploymentData')) { return getColor(d['unemploymentData'][0]['Value']); } else { return getColor(0); } })
+                            .classed("eu-country", isEuCountry);
+                    } else {
+                        var paths = d3.selectAll("svg.countries-svg path").data(countries);
+                        paths.transition()
+                            .duration(250)
+                            .style("fill", function(d) { if (d.hasOwnProperty('unemploymentData')) { return getColor(d['unemploymentData'][0]['Value']); } else { return getColor(0); } });
+                        
+                        paths.classed("eu-country", isEuCountry);
+                    }
 
-                    svg.selectAll("path")
-                        .data(countries)
-                        .enter().append("path")
-                        .attr("d", path)
-                        .attr("class", "country")
-                        .style("fill", function(d) { console.log("d" + d); if (d.hasOwnProperty('unemploymentData')) { console.log('has property'); return getColor(d['unemploymentData'][0]['Value']); } else { console.log('has no property'); return getColor(0); } })
-                        .classed("eu-country", isEuCountry);
 
+                    // var text = svg.selectAll("text")
+                    //     .data(countries)
+                    //     .enter()
+                    //     .append("text");
 
-                    var text = svg.selectAll("text")
-                        .data(countries)
-                        .enter()
-                        .append("text");
+                    // var textLabels = text
+                    //     .attr("x", function(d){
+                    //         return path.centroid(d)[0];
+                    //     })
+                    //     .attr("y", function(d){
+                    //         return  path.centroid(d)[1];
+                    //     })
+                    //     .text( function (d) {
+                    //         if (d.hasOwnProperty('unemploymentData')) {
+                    //             return d['unemploymentData'][0]['Value'];
+                    //         }
+                    //     })
+                    //     .attr("font-family", "sans-serif")
+                    //     .attr("font-size", "6px")
+                    //     .attr("fill", "black");
 
-                    var textLabels = text
-                        .attr("x", function(d){
-                            return path.centroid(d)[0];
-                        })
-                        .attr("y", function(d){
-                            return  path.centroid(d)[1];
-                        })
-                        .text( function (d) {
-                            if (d.hasOwnProperty('unemploymentData')) {
-                                return d['unemploymentData'][0]['Value'];
-                            }
-                        })
-                        .attr("font-family", "sans-serif")
-                        .attr("font-size", "6px")
-                        .attr("fill", "black");
-
-                    svg.selectAll(".eu-country")
+                    d3.selectAll(".eu-country")
                     .on("mouseover", function (d) {
                         div.transition()
                             .duration(200)
                             .style("opacity", .9);
                         var percent = d['unemploymentData'][0]['Value'];
-                        console.log(percent);
+
                         if(percent === ":") {
                             percent = "No data available";
                         } else {
