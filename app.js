@@ -1,22 +1,45 @@
 (function () {
     "use strict";
 
-
+    var svg;
+    var line;
     var year = 2000;
-    var width = 1200,
+    var width = 1000,
         height = 700;
 
 
     // To scale and translate map
     var projection = d3.geo.mercator()
         .scale(600)
-        .translate([width/4, height/2 +600]);
+        .translate([width/2 - 220, height/2 +600]);
 
     var div = d3.select("body").append("div")
         .attr("class", "tooltip")
         .style("opacity", 0);
 
     var path = d3.geo.path().projection(projection);
+
+    var x = d3.scale.linear()
+        .domain([0, 12])
+        .range([0, width]);
+
+    var y = d3.scale.linear()
+        .domain([-1, 16])
+        .range([height, 0]);
+
+    var xAxis = d3.svg.axis()
+        .scale(x)
+        .tickSize(-height)
+        .tickPadding(10)
+        .tickSubdivide(true)
+        .orient("bottom");
+
+    var yAxis = d3.svg.axis()
+        .scale(y)
+        .tickPadding(10)
+        .tickSize(-width)
+        .tickSubdivide(true)
+        .orient("left");
 
 
 
@@ -64,10 +87,10 @@
 
         //value from 0 to 1
         // var hue=((1-(4/value))*100).toString(10);
-        var hue=((600*(value/100))).toString(10);
+        var hue=((150*(value/30))+20).toString(10);
         // of > 0
         if(hue > -1) {
-            return ["hsl(3,",hue,"%,45%)"].join("");
+            return ["hsl(3,",hue,"%,",80-hue/3,"%)"].join("");
         } else {
             return "black";
         }
@@ -81,7 +104,7 @@
         var eu = topojson.feature(europe, europe.objects.europe),
             countries = eu.features;
 
-        console.log(countries)
+        // console.log(countries)
 
 
             d3.csv("unemployment/Unemployment.csv", function(error, data) {
@@ -120,16 +143,24 @@
                     var firstDrawing;
 
                     if (document.getElementsByClassName("countries-svg").length === 0) {
-                        var svg = d3.select("#container").append("svg")
+
+                        svg = d3.select("#container").append("svg")
                                              .attr("width", width)
                                              .attr("height", height)
                                              .classed("countries-svg", true);
+
+                        line = d3.select("#container").append("svg")
+                                             .attr("width", width)
+                                             .attr("height", height)
+                                             .classed("line-svg", true);
                         firstDrawing = true;
                     } else {
                         firstDrawing = false;
                     }
 
-                    console.log(countries);
+                    // console.log(countries);
+
+
 
                     if (firstDrawing) {
                         svg.selectAll("path")
@@ -192,16 +223,58 @@
                             .style("opacity", 0);
                     })
                     .on("click", function(d) {
-                        console.log("CLICK D: " + d);
-                        drawChart()
+                        console.log(d)
+                        drawChart(d);
                     });
                 }
 
-                function drawChart() {
-                    div.html("TEST")
-                        .style("float", "right")
-;
+                function drawChart(country) {
+                    console.log(country);
+
+                    x.domain(country['unemploymentData'].map(function (d) {
+                        console.log(d)
+                        return d[0]['TIME'];
+                    }));
+                //     y.domain([
+                //         d3.min(country['unemploymentData'], function (c) {
+                //             return d3.min(c.values, function (d) { return d.value; });
+                //         }),
+                //         d3.max(country['unemploymentData'], function (c) {
+                //             return d3.max(c.values, function (d) { return d.value; });
+                //         })
+                //     ]);
+
+                //     var line = d3.svg.line()
+                //         .interpolate("cardinal")
+                //         .x(function (d) { return x(d.label) + x.rangeBand() / 2; })
+                //         .y(function (d) { return y(d.value); });
+
+
+
+                    var chart = svg.selectAll(".series")
+                        console.log(country['unemploymentData'])
+                        .data(country.unemploymentData)
+                      .enter().append("g")
+                        .attr("class", "lineChart");
+
+                    chart.append("path")
+                        .attr("class", "line")
+                        .attr("d", function (d) {
+                            if(d){
+                                // console.log(d[0]['GEO']);
+                                // console.log(d);
+                                // return line(d[0]['Value']);
+                            }
+
+                        })
+                        .style("stroke", function (d) { return color(d.name); })
+                        .style("stroke-width", "4px")
+                        .style("fill", "none");
+
+
                 }
+
+
 
                 d3.select("#nYear").on("input", function() {
                   updateYear(+this.value);
