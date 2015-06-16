@@ -174,7 +174,7 @@
                             if (d.hasOwnProperty('unemploymentData')) {
                                 return getColor(d['unemploymentData'][year][0]['Value']);
                             } else {
-                                return getColor(0);
+                                return "grey";
                             }
                         })
                         .classed("eu-country", isEuCountry);
@@ -200,7 +200,7 @@
                             if (d.hasOwnProperty('unemploymentData')) {
                                 return getColor(d['unemploymentData'][year][0]['Value']);
                             } else {
-                                return getColor(0);
+                                return "grey";
                             }
                         });
 
@@ -264,7 +264,7 @@
                         } else {
                             var countryName = d['properties']['name'];
                         }
-                        console.log(d);
+
                         averagePerCountry.text("Average unemployment for " + countryName + " in " + year + ": " + d['unemploymentData'][year][0].Value + "%");
 
                         var sexNames = ["Males", "Females", "Total"];
@@ -378,7 +378,6 @@
 
             d3.select("#nYear").on("input", function() {
               updateYear(+this.value);
-              console.log("Jaar" + this.value);
             });
 
             updateYear(2000);
