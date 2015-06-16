@@ -139,7 +139,7 @@
 
             function updateYear(nYear) {
                 // adjust the text on the range slider
-                d3.select("#nYear-value").text(nYear);
+                d3.select(".range-value").text(nYear);
                 d3.select("#nYear").property("value", nYear);
                 year = nYear;
                 updateMap(countries, year);
