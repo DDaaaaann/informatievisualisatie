@@ -15,12 +15,22 @@
         .attr("class", "tooltip")
         .style("opacity", 0);
 
+    var noDataDiv = div.append("div")
+        .attr("class", "nodata")
+        .text("No data is available for this country and year")
+        .style("display", "hidden")
+        .style("color", "black");
+
+    var averagePerCountry = div.append("div")
+        .attr("class", "averagepercountry")
+        .style("color", "black");
+
     var barColor = d3.scale.ordinal()
         .range(["#98abc5", "#8a89a6", "#7b6888"]);
 
     var path = d3.geo.path().projection(projection);
 
-    var margin = {top: 20, right: 10, bottom: 10, left: 20},
+    var margin = {top: 20, right: 70, bottom: 10, left: 30},
         barWidth = 330 - margin.left - margin.right,
         barHeight = 230 - margin.top - margin.bottom;
 
@@ -184,13 +194,6 @@
                         div.transition()
                             .duration(200)
                             .style("opacity", .9);
-                        // var percent = d['unemploymentData'][year][0]['Value'];
-
-                        // if(percent === ":") {
-                        //     percent = "No data available";
-                        // } else {
-                        //     percent = percent.toString(10) + "%";
-                        // }
 
                         var firstDrawing;
 
@@ -200,10 +203,12 @@
                                 .attr("height", barHeight + margin.top + margin.bottom)
                                 .classed("country-barsvg", true)
                                 .append("g")
-                                .attr("transform", "translate(" + margin.left + ",0)");
+                                .attr("transform", "translate(" + margin.left + "," + margin.bottom + ")")
+                                .classed("container-g", true);
 
                             firstDrawing = true;
                         } else {
+                            var barSvg = d3.selectAll(".country-barsvg");
                             firstDrawing = false;
                         }
 
@@ -225,6 +230,25 @@
                             }
                         }
 
+                        if (twoGroups["Less than 25 years"][0].value === 0) {
+                            barSvg.style("display", "none");
+                            averagePerCountry.style("display", "none");
+                            noDataDiv.style("display", "block");
+                        } else {
+                            barSvg.style("display", "block");
+                            d3.select(".container-g").style("display", "block");
+                            averagePerCountry.style("display", "block");
+                            noDataDiv.style("display", "none");
+                        }
+                        
+                        if (d['properties']['name'] === "Germany (until 1990 former territory of the FRG)") {
+                            var countryName = "Germany";
+                        } else {
+                            var countryName = d['properties']['name'];
+                        }
+
+                        averagePerCountry.text("Average unemployment for " + countryName + " in " + year);
+
                         var sexNames = ["Males", "Females", "Total"];
                         x0.domain(Object.keys(twoGroups).map(function(d) { return d; }));
                         x1.domain(sexNames).rangeRoundBands([0, x0.rangeBand()]);
@@ -232,18 +256,19 @@
                         var max = 0;
                         d3.values(twoGroups).forEach(function(d) {
                             d.forEach(function(f) {
-                                if (f.value !== ":" && parseInt(f.value) > max) {
-                                    max = parseInt(f.value);
+                                if (f.value !== ":" && parseFloat(f.value) > max) {
+                                    max = parseFloat(f.value);
                                 }
                             });
                         });
-                        var max = d3.max(d3.values(twoGroups), function(d) { return d3.max(d, function(d) { return parseInt(d.value); }); });
-                        y.domain([0, max]);
+
+                        var max = d3.max(d3.values(twoGroups), function(d) { return d3.max(d, function(d) { return parseFloat(d.value); }); });
+                        y.domain([0, max]).nice();
 
                         if (firstDrawing) {
                             barSvg.append("g")
                                 .attr("class", "x axis")
-                                .attr("transform", "translate(0," + barHeight + ")")
+                                .attr("transform", "translate(5," + barHeight + ")")
                                 .call(xAxis);
 
                              barSvg.append("g")
@@ -251,8 +276,8 @@
                                 .call(yAxis)
                                 .append("text")
                                 .attr("transform", "rotate(-90)")
-                                .attr("y", 6)
-                                .attr("dy", ".71em")
+                                .attr("y", 4)
+                                .attr("dy", ".70em")
                                 .style("text-anchor", "end")
                                 .text("Population")
                                 .classed("tick_text");
@@ -263,9 +288,9 @@
                                 .attr("class", "g")
                                 .attr("transform", function(d, i) { 
                                     if (i === 0) {
-                                        return "translate(" + x0("Less than 25 years") + ",0)";
+                                        return "translate(" + (parseInt(x0("Less than 25 years")) + 5).toString() + ",0)";
                                     } else if (i === 1) {
-                                        return "translate(" + x0("From 25 to 74 years") + ",0)";
+                                        return "translate(" + (parseInt(x0("From 25 to 74 years")) + 5).toString() + ",0)";
                                     }
                                 })
                                 .classed("yeargroup", true);
@@ -279,6 +304,25 @@
                                 .attr("height", function(d) { return barHeight - y(d.value); })
                                 .style("fill", function(d) { return barColor(d.name); })
                                 .classed("barchart-rect", true);
+
+                            var legend = barSvg.selectAll(".legend")
+                                  .data(sexNames.slice())
+                                .enter().append("g")
+                                  .attr("class", "legend")
+                                  .attr("transform", function(d, i) { return "translate(70," + i * 20 + ")"; });
+
+                            legend.append("rect")
+                                .attr("x", barWidth - 18)
+                                .attr("width", 18)
+                                .attr("height", 18)
+                                .style("fill", barColor);
+
+                            legend.append("text")
+                                .attr("x", barWidth - 24)
+                                .attr("y", 9)
+                                .attr("dy", ".35em")
+                                .style("text-anchor", "end")
+                                .text(function(d) { return d; });
                         } else {
                             var newYAxis = d3.select("g.y")
                                 .call(yAxis)
@@ -298,8 +342,6 @@
                                 .attr("height", function(d) { return barHeight - y(d.value); })
                                 .style("fill", function(d) { return barColor(d.name); })
                                 .classed("barchart-rect", true);
-                            console.log(yeargroups);
-                            console.log(rects);
                         }
                         
                         div.style("left", (d3.event.pageX) + "px")
