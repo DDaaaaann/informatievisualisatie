@@ -17,8 +17,8 @@
       text-align: center;
       padding: 6px;
       font: 12px sans-serif;
-      background: #333333;
-      border: 0px;
+      background: #D8D8D8;
+      border: 1px solid black;
       margin-left:auto;
       margin-right:auto;
       border-radius: 8px;
@@ -38,9 +38,28 @@
 
     }
 
-.eu-country {
-    fill: lightgray;
-}
+    .axis {
+      font: 10px sans-serif;
+    }
+
+    .axis path,
+    .axis line {
+      fill: none;
+      stroke: #000;
+      shape-rendering: crispEdges;
+    }
+
+    .bar {
+      fill: steelblue;
+    }
+
+    .x.axis path {
+      display: none;
+    }
+
+    .eu-country {
+        fill: lightgray;
+    }
     </style>
 </head>
 <body>
