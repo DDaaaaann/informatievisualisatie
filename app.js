@@ -19,29 +19,6 @@
 
     var path = d3.geo.path().projection(projection);
 
-    var x = d3.scale.linear()
-        .domain([0, 12])
-        .range([0, width]);
-
-    var y = d3.scale.linear()
-        .domain([-1, 16])
-        .range([height, 0]);
-
-    var xAxis = d3.svg.axis()
-        .scale(x)
-        .tickSize(-height)
-        .tickPadding(10)
-        .tickSubdivide(true)
-        .orient("bottom");
-
-    var yAxis = d3.svg.axis()
-        .scale(y)
-        .tickPadding(10)
-        .tickSize(-width)
-        .tickSubdivide(true)
-        .orient("left");
-
-
 
     // http://blog.mondula.com/mapping-minimum-wages-europe#comment-21
     var eu = [
@@ -149,10 +126,7 @@
                                              .attr("height", height)
                                              .classed("countries-svg", true);
 
-                        line = d3.select("#container").append("svg")
-                                             .attr("width", width)
-                                             .attr("height", height)
-                                             .classed("line-svg", true);
+
                         firstDrawing = true;
                     } else {
                         firstDrawing = false;
@@ -163,6 +137,7 @@
 
 
                     if (firstDrawing) {
+
                         svg.selectAll("path")
                             .data(countries)
                             .enter().append("path")
@@ -170,6 +145,20 @@
                             .attr("class", "country")
                             .style("fill", function(d) { if (d.hasOwnProperty('unemploymentData')) { return getColor(d['unemploymentData'][year][0]['Value']); } else { return getColor(0); } })
                             .classed("eu-country", isEuCountry);
+
+
+
+                        // Chart plotting on the right first time
+
+                        // line = d3.select("#graph")
+                        //     .append("svg")
+                        //         .attr("width", width + margin.left + margin.right)
+                        //         .attr("height", height + margin.top + margin.bottom)
+                        //       .append("g")
+                        //         .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+
+
                     } else {
                         var paths = d3.selectAll("svg.countries-svg path").data(countries);
                         paths.transition()
@@ -223,53 +212,17 @@
                             .style("opacity", 0);
                     })
                     .on("click", function(d) {
-                        console.log(d)
+                        console.log(d);
                         drawChart(d);
                     });
                 }
 
+
+
                 function drawChart(country) {
                     console.log(country);
 
-                    x.domain(country['unemploymentData'].map(function (d) {
-                        console.log(d)
-                        return d[0]['TIME'];
-                    }));
-                //     y.domain([
-                //         d3.min(country['unemploymentData'], function (c) {
-                //             return d3.min(c.values, function (d) { return d.value; });
-                //         }),
-                //         d3.max(country['unemploymentData'], function (c) {
-                //             return d3.max(c.values, function (d) { return d.value; });
-                //         })
-                //     ]);
 
-                //     var line = d3.svg.line()
-                //         .interpolate("cardinal")
-                //         .x(function (d) { return x(d.label) + x.rangeBand() / 2; })
-                //         .y(function (d) { return y(d.value); });
-
-
-
-                    var chart = svg.selectAll(".series")
-                        console.log(country['unemploymentData'])
-                        .data(country.unemploymentData)
-                      .enter().append("g")
-                        .attr("class", "lineChart");
-
-                    chart.append("path")
-                        .attr("class", "line")
-                        .attr("d", function (d) {
-                            if(d){
-                                // console.log(d[0]['GEO']);
-                                // console.log(d);
-                                // return line(d[0]['Value']);
-                            }
-
-                        })
-                        .style("stroke", function (d) { return color(d.name); })
-                        .style("stroke-width", "4px")
-                        .style("fill", "none");
 
 
                 }
