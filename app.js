@@ -411,9 +411,11 @@
                     .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
 
-                 xgraph.domain(d3.extent(countrydata, function(d) {
+                 // xgraph.domain(d3.extent(countrydata, function(d) {
 
-                    return d['year']; }));
+                 //    return d['year']; }));
+
+                xgraph.domain([2000,2015]);
 
                  ygraph.domain([0, d3.max(countrydata, function(d) {
                     console.log(d.value);
