@@ -3,6 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <title>Map (simple)</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+    <script src="d3/d3.js"></script>
+    <script src="jquery/jquery.nouislider.all.js"></script>
+    <script src="topojson-master/topojson.js"></script>
+    <link rel="stylesheet" type="text/css" href="jquery/jquery.nouislider.css">
+    <link rel="stylesheet" type="text/css" href="jquery/jquery.nouislider.pips.css">
     <style type="text/css">
       .country {
         fill: gray;
@@ -78,31 +84,9 @@
 
     .range-container {
       height: 35px;
-      width: 270px;
+      width: 295px;
       display: inline-block;
-      margin-left: 10px;
-    }
-
-      .range-container span {
-        font: 10px sans-serif;
-        color: black;
-      }
-
-      .range-container .left {
-        float: left;
-      }
-
-      .range-container .right {
-        float: right;
-      }
-      
-    input[type='range']::-webkit-slider-thumb {
-        -webkit-appearance: none !important;
-        border: 5px solid #999;
-        border-radius: 10px;
-        background-color: white;
-        height:20px;
-        width:20px;
+      margin-left: 20px;
     }
 
     .range-value {
@@ -139,16 +123,31 @@
         <div class="header">Unemployment in europe in the year:
           <span class="range-value"></span>
           <div class="range-container">
-            <span class="left">2000</span><span class="right">2014</span>
-            <input type="range" min="2000" max="2014" id="nYear">
+            <div class="slider"></div>
+            <!-- <span class="left">2000</span><span class="right">2014</span>
+            <input type="range" min="2000" max="2014" id="nYear"> -->
           </div>  
         </div>
       </p>
       <div id="graph" class="aGraph" style="position:absolute;top:0px;left:0; float:left;"></div>
     </div>
-    <script src="d3/d3.js"></script>
-    <script src="topojson-master/topojson.js"></script>
     <script src="app.js"></script>
-
+    <script>
+      $(function() {
+        $(".slider").noUiSlider({
+          start: 2000,
+          step: 1,
+          range: {
+            'min': 2000,
+            'max': 2014
+          }
+        }).noUiSlider_pips({
+          mode: 'count',
+          values: 3,
+          density: 7,
+          stepped: true
+        });
+      });
+    </script>
 </body>
 </html>

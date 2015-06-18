@@ -140,7 +140,7 @@
             function updateYear(nYear) {
                 // adjust the text on the range slider
                 d3.select(".range-value").text(nYear);
-                d3.select("#nYear").property("value", nYear);
+                // $('.slider').val(nYear);
                 year = nYear;
                 updateMap(countries, year);
             }
@@ -376,8 +376,8 @@
                 console.log(country);
             }
 
-            d3.select("#nYear").on("input", function() {
-              updateYear(+this.value);
+            $(".slider").on("slide", function() {
+              updateYear(+$(".slider").val());
             });
 
             updateYear(2000);
