@@ -135,6 +135,7 @@
                     }
 
                 }
+
             updateMap(countries, year);
 
             function updateYear(nYear) {
@@ -181,16 +182,6 @@
 
 
 
-                    // Chart plotting on the right first time
-
-                    // line = d3.select("#graph")
-                    //     .append("svg")
-                    //         .attr("width", width + margin.left + margin.right)
-                    //         .attr("height", height + margin.top + margin.bottom)
-                    //       .append("g")
-                    //         .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-
-
 
                 } else {
                     var paths = d3.selectAll("svg.countries-svg path").data(countries);
@@ -235,15 +226,15 @@
                         for (var row in d['unemploymentData'][year]) {
                             if (d['unemploymentData'][year][row].AGE === "Less than 25 years") {
                                 if (d['unemploymentData'][year][row].Value === ":") {
-                                    twoGroups[d['unemploymentData'][year][row].AGE].push({ name: d['unemploymentData'][year][row].SEX, value: 0 });     
+                                    twoGroups[d['unemploymentData'][year][row].AGE].push({ name: d['unemploymentData'][year][row].SEX, value: 0 });
                                 } else {
-                                    twoGroups[d['unemploymentData'][year][row].AGE].push({ name: d['unemploymentData'][year][row].SEX, value: d['unemploymentData'][year][row].Value }); 
+                                    twoGroups[d['unemploymentData'][year][row].AGE].push({ name: d['unemploymentData'][year][row].SEX, value: d['unemploymentData'][year][row].Value });
                                 }
                             } else if (d['unemploymentData'][year][row].AGE === "From 25 to 74 years") {
                                 if (d['unemploymentData'][year][row].Value === ":") {
-                                    twoGroups[d['unemploymentData'][year][row].AGE].push({ name: d['unemploymentData'][year][row].SEX, value: 0 });     
+                                    twoGroups[d['unemploymentData'][year][row].AGE].push({ name: d['unemploymentData'][year][row].SEX, value: 0 });
                                 } else {
-                                    twoGroups[d['unemploymentData'][year][row].AGE].push({ name: d['unemploymentData'][year][row].SEX, value: d['unemploymentData'][year][row].Value }); 
+                                    twoGroups[d['unemploymentData'][year][row].AGE].push({ name: d['unemploymentData'][year][row].SEX, value: d['unemploymentData'][year][row].Value });
                                 }
                             }
                         }
@@ -258,7 +249,7 @@
                             averagePerCountry.style("display", "block");
                             noDataDiv.style("display", "none");
                         }
-                        
+
                         if (d['properties']['name'] === "Germany (until 1990 former territory of the FRG)") {
                             var countryName = "Germany";
                         } else {
@@ -304,7 +295,7 @@
                                 .data(d3.values(twoGroups))
                                 .enter().append("g")
                                 .attr("class", "g")
-                                .attr("transform", function(d, i) { 
+                                .attr("transform", function(d, i) {
                                     if (i === 0) {
                                         return "translate(" + (parseInt(x0("Less than 25 years")) + 5).toString() + ",0)";
                                     } else if (i === 1) {
@@ -361,7 +352,7 @@
                                 .style("fill", function(d) { return barColor(d.name); })
                                 .classed("barchart-rect", true);
                         }
-                        
+
                         div.style("left", (d3.event.pageX) + "px")
                             .style("top", (d3.event.pageY - 28) + "px");
                     })
@@ -369,11 +360,86 @@
                         div.transition()
                             .duration(500)
                             .style("opacity", 0);
+                    })
+                    .on("click", function(d) {
+                        console.log(d);
+                        drawChart(d);
                     });
                 }
 
             function drawChart(country) {
                 console.log(country);
+                var countrydata = [];
+                for(var row in country['unemploymentData']) {
+                    console.log("row");
+                    console.log(country['unemploymentData'][row][0]['Value']);
+                    if(!isNaN(country['unemploymentData'][row][0]['Value'])) {
+                        countrydata.push({year: parseInt(row), value: parseFloat(country['unemploymentData'][row][0]['Value'])});
+                    }
+                }
+
+                console.log(countrydata);
+
+                var margin = {top: 200, right: 20, bottom: 30, left: 50},
+                width = 800 - margin.left - margin.right,
+                height = 500 - margin.top - margin.bottom;
+
+
+                var xgraph = d3.scale.linear()
+                    .range([0, width]);
+
+                var ygraph = d3.scale.linear()
+                    .range([height, 0]);
+
+                var xAxisLine = d3.svg.axis()
+                    .scale(xgraph)
+                    .orient("bottom")
+                    .tickFormat(d3.format("d"));
+
+                var yAxisLine = d3.svg.axis()
+                    .scale(ygraph)
+                    .orient("left");
+
+                var line = d3.svg.line()
+                    .x(function(d) { return xgraph(d.year); })
+                    .y(function(d) { return ygraph(d.value); });
+
+                var graph = d3.select(".aGraph").append("svg")
+                    .attr("width", width + margin.left + margin.right)
+                    .attr("height", height + margin.top + margin.bottom)
+                  .append("g")
+                    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+
+                 xgraph.domain(d3.extent(countrydata, function(d) {
+
+                    return d['year']; }));
+
+                 ygraph.domain([0, d3.max(countrydata, function(d) {
+                    console.log(d.value);
+                    return d.value; })]);
+
+                // ygraph.domain([0,12]);
+                 console.log(ygraph);
+                  graph.append("g")
+                      .attr("class", "xgraph axis")
+                      .attr("transform", "translate(0," + height + ")")
+                      .call(xAxisLine);
+
+                  graph.append("g")
+                      .attr("class", "ygraph axis")
+                      .call(yAxisLine)
+                    .append("text")
+                      .attr("transform", "rotate(-90)")
+                      .attr("ygraph", 6)
+                      .attr("dy", ".71em")
+                      .style("text-anchor", "end")
+                      .text("Percent (%)");
+
+                  graph.append("path")
+                      .datum(countrydata)
+                      .attr("class", "line")
+                      .attr("d", line);
             }
 
             d3.select("#nYear").on("input", function() {
