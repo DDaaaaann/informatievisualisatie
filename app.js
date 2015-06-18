@@ -145,6 +145,11 @@
                 updateMap(countries, year);
             }
 
+            function updateTrend(year1, year2) {
+                console.log(year1, year2);
+                svg.selectAll("path")
+                    .style("fill", "grey");
+            }
 
             function updateMap(countries, year){
                 var firstDrawing;
@@ -376,8 +381,26 @@
                 console.log(country);
             }
 
-            $(".slider").on("slide", function() {
-              updateYear(+$(".slider").val());
+            $("#typeSelect").change(function() {
+                if ($("#typeSelect").val() === "peryear") {
+                    updateYear(+$(".per-year-slider").val());
+                } else if ($("#typeSelect").val() === "trend") {
+                    console.log("trend selected");
+                    var trendvalues = $(".trend-slider").val();
+                    updateTrend(parseInt(trendvalues[0]), parseInt(trendvalues[1]));
+                }
+
+                $('.per-year-slider').toggle();
+                $('.trend-slider').toggle();
+            });
+
+            $(".per-year-slider").on("slide", function() {
+              updateYear(+$(".per-year-slider").val());
+            });
+
+            $(".trend-slider").on("slide", function() {
+                var trendvalues = $(".trend-slider").val();
+                updateTrend(parseInt(trendvalues[0]), parseInt(trendvalues[1]));
             });
 
             updateYear(2000);
