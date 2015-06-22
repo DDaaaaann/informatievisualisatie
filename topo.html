@@ -3,6 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <title>Map (simple)</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+    <script src="d3/d3.js"></script>
+    <script src="jquery/jquery.nouislider.all.js"></script>
+    <script src="topojson-master/topojson.js"></script>
+    <link rel="stylesheet" type="text/css" href="jquery/jquery.nouislider.css">
+    <link rel="stylesheet" type="text/css" href="jquery/jquery.nouislider.pips.css">
     <style type="text/css">
       .country {
         fill: gray;
@@ -31,7 +37,16 @@
       background-color: white;
       padding: 10px;
       font-family: sans-serif;
-      font-size: 20px;
+      font-size: 16px;
+      height: 75px;
+    }
+
+    .header-margin {
+      display: inline-block;
+      float: left;
+      height: 75px;
+      width: 415px;
+      text-align: right;
     }
 
     .axis path,
@@ -77,32 +92,9 @@
     }
 
     .range-container {
-      height: 35px;
-      width: 270px;
+      width: 295px;
       display: inline-block;
-      margin-left: 10px;
-    }
-
-      .range-container span {
-        font: 10px sans-serif;
-        color: black;
-      }
-
-      .range-container .left {
-        float: left;
-      }
-
-      .range-container .right {
-        float: right;
-      }
-      
-    input[type='range']::-webkit-slider-thumb {
-        -webkit-appearance: none !important;
-        border: 5px solid #999;
-        border-radius: 10px;
-        background-color: white;
-        height:20px;
-        width:20px;
+      margin-left: 30px;
     }
 
     .range-value {
@@ -131,25 +123,77 @@
       }
     }
 
+    select {
+        margin-top: 10px;
+        width: 80px;
+    }
+
     </style>
 </head>
 <body>
     <div id="container">
-      <p>
-        <div class="header">Unemployment in europe in the year:
+      <div class="header">
+        <div class="header-margin">
+          <span id="header-title">
+            Unemployment in europe in the year:
+          </span>
           <span class="range-value"></span>
-          <div class="range-container">
-            <span class="left">2000</span><span class="right">2014</span>
-            <input type="range" min="2000" max="2014" id="nYear">
-          </div>  
+          <select id="typeSelect">
+            <option value="peryear">Per year</option>
+            <option value="trend">Trend</option>
+        </select>
         </div>
+<<<<<<< HEAD
       </p>
       <!-- <div id="graph" class="aGraph" style="position:absolute;top:0px;left:0; float:left;"></div> -->
     </div>
     <div id="graph" class="aGraph" style="position:absolute;top:0px;left:750px; float:left;"></div>
     <script src="d3/d3.js"></script>
     <script src="topojson-master/topojson.js"></script>
+=======
+        <div class="range-container">
+          <div class="per-year-slider"></div>
+          <div class="trend-slider" style="display:none;"></div>
+          <!-- <span class="left">2000</span><span class="right">2014</span>
+          <input type="range" min="2000" max="2014" id="nYear"> -->
+        </div>  
+      </div>
+      <div id="graph" class="aGraph" style="position:absolute;top:0px;left:0; float:left;"></div>
+    </div>
+>>>>>>> sliderstuff
     <script src="app.js"></script>
+    <script>
+      $(function() {
+        $(".per-year-slider").noUiSlider({
+          start: 2000,
+          step: 1,
+          range: {
+            'min': 2000,
+            'max': 2014
+          }
+        }).noUiSlider_pips({
+          mode: 'count',
+          values: 3,
+          density: 7,
+          stepped: true
+        });
 
+        $(".trend-slider").noUiSlider({
+          start: [2000, 2001],
+          step: 1,
+          margin: 1,
+          connect: true,
+          range: {
+            'min': [2000],
+            'max': [2014]
+          }
+        }).noUiSlider_pips({
+          mode: 'count',
+          values: 3,
+          density: 7,
+          stepped: true
+        });
+      });
+    </script>
 </body>
 </html>
