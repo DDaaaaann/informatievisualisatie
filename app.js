@@ -93,13 +93,19 @@
     }
 
     function getTrendColor(value, min, max) {
-        var oldRange = max - min;
+        if (Math.abs(min) >= Math.abs(max) && min < 0) {
+            max = Math.abs(min);
+            var oldRange = max - min;
+        } else if (Math.abs(max) > Math.abs(min) && max > 0) {
+            min = max * -1;
+            var oldRange = max - min;
+        } 
+
         var newRange = 1 - 0;
         var newValue = (((value - min) * newRange) / oldRange) + 0;
 
         //value from 0 to 1
         var hue = ((1 - newValue) * 120).toString(10);
-        console.log("value = ", newValue, ", min = ", min, ", max = ", max, ", hue = ", hue);
         return ["hsl(",hue,",100%,40%)"].join("");
     }
 
@@ -166,11 +172,8 @@
                         d['unemploymentData'][year1][0]['Value'] !== ":" && 
                         d['unemploymentData'][year2][0]['Value'] !== ":") {
                         var diff = parseFloat((parseFloat(d['unemploymentData'][year2][0]['Value']) - parseFloat(d['unemploymentData'][year1][0]['Value'])).toPrecision(2));
-                        if (diff > 0) {
-                            max = Math.max(diff, max);
-                        } else {
-                            min = Math.min(diff, min);
-                        }
+                        max = Math.max(diff, max);
+                        min = Math.min(diff, min);
                     }
                 });
 
@@ -435,7 +438,12 @@
                             }
                             var diff = parseFloat((parseFloat(d['unemploymentData'][year2][0]['Value']) - parseFloat(d['unemploymentData'][year1][0]['Value'])).toPrecision(2));
 
-                            averagePerCountry.text("Unemployment trend development for " + countryName + " in the period " + year1 + " - " + year2 + ": " + diff + "%");
+                            if (diff > 0.0) {
+                                averagePerCountry.text("Unemployment trend development for " + countryName + " in the period " + year1 + " - " + year2 + ": " + diff + "% increase");
+                            } else if (diff <= 0.0) {
+                                averagePerCountry.text("Unemployment trend development for " + countryName + " in the period " + year1 + " - " + year2 + ": " + diff * -1.0 + "% decrease");
+                            }
+
                             div.style("left", (d3.event.pageX) + "px")
                                 .style("top", (d3.event.pageY - 28) + "px");
                         }
