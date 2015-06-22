@@ -100,7 +100,7 @@
         //value from 0 to 1
         var hue = ((1 - newValue) * 120).toString(10);
         console.log("value = ", newValue, ", min = ", min, ", max = ", max, ", hue = ", hue);
-        return ["hsl(",hue,",100%,50%)"].join("");
+        return ["hsl(",hue,",100%,40%)"].join("");
     }
 
     function getColor(value){
@@ -150,13 +150,14 @@
 
             function updateYear(nYear) {
                 // adjust the text on the range slider
-                d3.select(".range-value").text(nYear);
+                d3.select(".range-value").style("font-size", "20px").text(nYear);
                 // $('.slider').val(nYear);
                 year = nYear;
                 updateMap(countries, year);
             }
 
             function updateTrend(year1, year2) {
+                d3.select(".range-value").style("font-size", "11px").text(year1 + " - " + year2);
                 var min = 0;
                 var max = 0;
 
@@ -412,6 +413,29 @@
                                     .classed("barchart-rect", true);
                             }
                             
+                            div.style("left", (d3.event.pageX) + "px")
+                                .style("top", (d3.event.pageY - 28) + "px");
+                        } else if ($("#typeSelect").val() === "trend") {
+                            if (document.getElementsByClassName("country-barsvg").length !== 0) {
+                                d3.selectAll(".country-barsvg").style("display", "none");
+                            }
+                            noDataDiv.style("display", "none");
+
+                            div.transition()
+                                .duration(200)
+                                .style("opacity", .9);
+
+                            var trendvalues = $(".trend-slider").val();
+                            var year1 = parseInt(trendvalues[0]);
+                            var year2 = parseInt(trendvalues[1]);
+                            if (d['properties']['name'] === "Germany (until 1990 former territory of the FRG)") {
+                                var countryName = "Germany";
+                            } else {
+                                var countryName = d['properties']['name'];
+                            }
+                            var diff = parseFloat((parseFloat(d['unemploymentData'][year2][0]['Value']) - parseFloat(d['unemploymentData'][year1][0]['Value'])).toPrecision(2));
+
+                            averagePerCountry.text("Unemployment trend development for " + countryName + " in the period " + year1 + " - " + year2 + ": " + diff + "%");
                             div.style("left", (d3.event.pageX) + "px")
                                 .style("top", (d3.event.pageY - 28) + "px");
                         }
