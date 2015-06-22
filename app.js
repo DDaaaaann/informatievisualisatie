@@ -109,7 +109,7 @@
 
     d3.json("eu.json", function (error, europe) {
         if (error) return console.error(error);
-
+        var euUnion = [];
         var eu = topojson.feature(europe, europe.objects.europe),
             countries = eu.features;
 
@@ -119,6 +119,7 @@
         d3.csv("unemployment/Unemployment.csv", function(error, data) {
             eu = topojson.feature(europe, europe.objects.europe),
                     countries = eu.features;
+
                 for (var i = 0; i < data.length; i += 9) {
                     for (var j = 0; j < countries.length; j++) {
                         if (countries[j]['properties']['name'] === data[i]['GEO']) {
@@ -133,8 +134,17 @@
                             }
                         }
                     }
-
                 }
+
+                for (var i = 0; i < data.length; i += 9) {
+                    if (data[i]['GEO'] === 'European Union (28 countries)') {
+                        euUnion.push({year: data[i]['TIME'], value: data[i]['Value']});
+                    }
+                }
+                console.log('EUUUU');
+                console.log(euUnion);
+
+
 
             updateMap(countries, year);
 
@@ -368,8 +378,36 @@
                 }
 
             function drawChart(country) {
+
+                function updateData(countrydata) {
+                    var graph = d3.select(".aGraph").transition();
+
+                    xgraph.domain([2000,2015]);
+
+                    ygraph.domain([0, d3.max(countrydata, function(d) {
+                        console.log(d.value);
+                        return d.value; })]).nice();
+
+                    graph.select(".line")   // change the line
+                        .duration(750)
+                        .attr("d", line(countrydata));
+                    graph.select(".xgraph.axis") // change the x axis
+                        .duration(750)
+                        .call(xAxisLine);
+                    graph.select(".ygraph.axis") // change the y axis
+                        .duration(750)
+                        .call(yAxisLine);
+                }
+
+                if (document.getElementsByClassName("linegraph").length === 0) {
+                    var firstDrawing = true;
+                } else {
+                    var firstDrawing = false;
+                }
+
                 console.log(country);
                 var countrydata = [];
+
                 for(var row in country['unemploymentData']) {
                     console.log("row");
                     console.log(country['unemploymentData'][row][0]['Value']);
@@ -398,50 +436,60 @@
 
                 var yAxisLine = d3.svg.axis()
                     .scale(ygraph)
+                    .tickFormat(function(d) { return parseFloat(d, 10) + "%"; })
                     .orient("left");
 
                 var line = d3.svg.line()
                     .x(function(d) { return xgraph(d.year); })
                     .y(function(d) { return ygraph(d.value); });
 
-                var graph = d3.select(".aGraph").append("svg")
-                    .attr("width", width + margin.left + margin.right)
-                    .attr("height", height + margin.top + margin.bottom)
-                  .append("g")
-                    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+                xgraph.domain([2000,2015]);
 
+                ygraph.domain([0, d3.max(countrydata, function(d) {
+                    console.log(d.value);
+                    return d.value; })]).nice();
+
+                if(firstDrawing) {
+                    var graph = d3.select(".aGraph").append("svg")
+                        .attr("class", "linegraph")
+                        .attr("width", width + margin.left + margin.right)
+                        .attr("height", height + margin.top + margin.bottom)
+                      .append("g")
+                        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+                    graph.append("g")
+                      .attr("class", "xgraph axis")
+                      .attr("transform", "translate(0," + height + ")")
+                      .call(xAxisLine);
+
+                      graph.append("g")
+                          .attr("class", "ygraph axis")
+                          .call(yAxisLine)
+                        .append("text")
+                          .attr("transform", "rotate(-90)")
+                          .attr("ygraph", 6)
+                          .attr("dy", ".71em")
+                          .style("text-anchor", "end")
+                          .text("Population");
+
+                      graph.append("path")
+                          .datum(countrydata)
+                          .attr("class", "line")
+                          .attr("d", line);
+                    updateData(countrydata);
+                } else {
+                    updateData(countrydata);
+                }
 
                  // xgraph.domain(d3.extent(countrydata, function(d) {
 
                  //    return d['year']; }));
 
-                xgraph.domain([2000,2015]);
 
-                 ygraph.domain([0, d3.max(countrydata, function(d) {
-                    console.log(d.value);
-                    return d.value; })]);
 
                 // ygraph.domain([0,12]);
                  console.log(ygraph);
-                  graph.append("g")
-                      .attr("class", "xgraph axis")
-                      .attr("transform", "translate(0," + height + ")")
-                      .call(xAxisLine);
 
-                  graph.append("g")
-                      .attr("class", "ygraph axis")
-                      .call(yAxisLine)
-                    .append("text")
-                      .attr("transform", "rotate(-90)")
-                      .attr("ygraph", 6)
-                      .attr("dy", ".71em")
-                      .style("text-anchor", "end")
-                      .text("Percent (%)");
-
-                  graph.append("path")
-                      .datum(countrydata)
-                      .attr("class", "line")
-                      .attr("d", line);
             }
 
             d3.select("#nYear").on("input", function() {
