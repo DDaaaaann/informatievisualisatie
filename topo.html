@@ -37,7 +37,7 @@
       background-color: white;
       padding: 10px;
       font-family: sans-serif;
-      font-size: 20px;
+      font-size: 16px;
       height: 75px;
     }
 
@@ -45,7 +45,8 @@
       display: inline-block;
       float: left;
       height: 75px;
-      width: 425px;
+      width: 415px;
+      text-align: right;
     }
 
     .axis path,
@@ -93,7 +94,7 @@
     .range-container {
       width: 295px;
       display: inline-block;
-      margin-left: 20px;
+      margin-left: 30px;
     }
 
     .range-value {
@@ -122,13 +123,20 @@
       }
     }
 
+    select {
+        margin-top: 10px;
+        width: 80px;
+    }
+
     </style>
 </head>
 <body>
     <div id="container">
       <div class="header">
         <div class="header-margin">
-          Unemployment in europe in the year:
+          <span id="header-title">
+            Unemployment in europe in the year:
+          </span>
           <span class="range-value"></span>
           <select id="typeSelect">
             <option value="peryear">Per year</option>
