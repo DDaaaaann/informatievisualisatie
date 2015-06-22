@@ -27,7 +27,7 @@
         .style("color", "black");
 
     var barColor = d3.scale.ordinal()
-        .range(["#98abc5", "#8a89a6", "#7b6888"]);
+        .range(["#8dd3c7", "#80b1d3", "#fb8072"]);
 
     var path = d3.geo.path().projection(projection);
 
@@ -141,8 +141,79 @@
                         euUnion.push({year: data[i]['TIME'], value: data[i]['Value']});
                     }
                 }
-                console.log('EUUUU');
-                console.log(euUnion);
+                var maxEU = d3.max(euUnion, function(d) {
+                        return d.value; });
+
+
+
+            var marginGraph = {top: 30, right: 20, bottom: 30, left: 50},
+                widthGraph = 500 - marginGraph.left - marginGraph.right,
+                heightGraph = 300 - marginGraph.top - marginGraph.bottom;
+
+
+            var xgraph = d3.scale.linear()
+                .range([0, widthGraph]);
+
+            var ygraph = d3.scale.linear()
+                .range([heightGraph, 0]);
+
+            var xAxisLine = d3.svg.axis()
+                .scale(xgraph)
+                .orient("bottom")
+                .tickFormat(d3.format("d"));
+
+            var yAxisLine = d3.svg.axis()
+                .scale(ygraph)
+                .tickFormat(function(d) { return parseFloat(d, 10) + "%"; })
+                .orient("left");
+
+            var line = d3.svg.line()
+                .x(function(d) { return xgraph(d.year); })
+                .y(function(d) { return ygraph(d.value); });
+
+            xgraph.domain([2000,2015]);
+            ygraph.domain([0,maxEU+10]).nice();
+
+            var graph = d3.select(".aGraph").append("svg")
+                        .attr("class", "linegraph")
+                        .attr("width", widthGraph + marginGraph.left + marginGraph.right)
+                        .attr("height", heightGraph + marginGraph.top + marginGraph.bottom)
+                      .append("g")
+                        .attr("transform", "translate(" + marginGraph.left + "," + marginGraph.top + ")");
+
+                    graph.append("g")
+                      .attr("class", "xgraph axis")
+                      .attr("transform", "translate(0," + heightGraph + ")")
+                      .call(xAxisLine);
+
+                    graph.append("g")
+                        .attr("class", "ygraph axis")
+                        .call(yAxisLine)
+                      .append("text")
+                        .attr("transform", "rotate(-90)")
+                        .attr("ygraph", 6)
+                        .attr("dy", ".71em")
+                        .style("text-anchor", "end")
+                        .text("Population");
+
+                    graph.append("path")
+                        .attr("class", "line");
+
+                    graph.append("path")
+                        .datum(euUnion)
+                        .attr("class", "EUline")
+                        .attr("d", line);
+
+                    var graphTitle = graph.append("text")
+                        .attr("x", (widthGraph / 2))
+                        .attr("y", -10 - (marginGraph.top / 4))
+                        .attr("text-anchor", "middle")
+                        .style("font-size", "16px")
+                        .style("font-family", "sans-serif");
+
+                        graphTitle.append("svg:tspan").attr("class", "europe").style("fill", "red").text("Europe");
+                        graphTitle.append("svg:tspan").attr("class", "vs").style("fill", "black").text("");
+                        graphTitle.append("svg:tspan").attr("class", "country").style("fill", "steelblue").text("");
 
 
 
@@ -155,6 +226,32 @@
                 year = nYear;
                 updateMap(countries, year);
             }
+
+
+            function drawLegend() {
+                var w = 140, h = 400;
+
+                var key = d3.select(".color-legend").append("svg").attr("width", w).attr("height", h);
+
+                for (var i = 0; i < 30; i+=5) {
+                    console.log(i)
+                    var legend = key.append("defs").append("svg:linearGradient").attr("id", "gradient").attr("x1", "100%").attr("y1", "0%").attr("x2", "100%").attr("y2", "100%").attr("spreadMethod", "pad");
+                    legend.append("stop").attr("offset", "0%").attr("stop-color", getColor(i+5)).attr("stop-opacity", 1);
+
+                    legend.append("stop").attr("offset", "100%").attr("stop-color", getColor(i)).attr("stop-opacity", 1);
+
+                    key.append("rect").attr("width", w - 100).attr("height", 50).attr("x", 40).attr("y", 250-i*10).style("fill", "url(#gradient)").attr("transform", "translate(0, 10)");
+                };
+
+
+                var yLegend = d3.scale.linear().range([300, 0]).domain([0, 30]);
+
+                var yAxisLegend = d3.svg.axis().scale(yLegend).tickFormat(function(d) { return parseFloat(d, 10) + "%"; }).orient("left");
+
+                key.append("g").attr("class", "yLegend axis").attr("transform", "translate(40,10)").call(yAxisLegend).append("text").attr("transform", "rotate(-90)").attr("y", 50).attr("dy", ".71em").style("text-anchor", "end").text("Unemployment Rate");
+            }
+
+
 
 
             function updateMap(countries, year){
@@ -377,17 +474,31 @@
                     });
                 }
 
-            function drawChart(country) {
 
+
+
+
+            function drawChart(country) {
+                console.log("name")
+                console.log(country['properties']['name'])
+                var name = country['properties']['name']
                 function updateData(countrydata) {
                     var graph = d3.select(".aGraph").transition();
 
                     xgraph.domain([2000,2015]);
 
-                    ygraph.domain([0, d3.max(countrydata, function(d) {
-                        console.log(d.value);
-                        return d.value; })]).nice();
+                    var countryMax = d3.max(countrydata, function(d) {
+                        return d.value; });
+                    if(countryMax > maxEU) {
+                        ygraph.domain([0, countryMax]).nice();
+                    } else {
+                        ygraph.domain([0, maxEU]).nice();
+                    }
 
+
+                    graph.select(".EUline")   // change the line
+                        .duration(750)
+                        .attr("d", line(euUnion));
                     graph.select(".line")   // change the line
                         .duration(750)
                         .attr("d", line(countrydata));
@@ -397,15 +508,14 @@
                     graph.select(".ygraph.axis") // change the y axis
                         .duration(750)
                         .call(yAxisLine);
+
+
+                    graphTitle.select(".vs").text(" vs. ");
+                    graphTitle.select(".country").text(name);
+
+
                 }
 
-                if (document.getElementsByClassName("linegraph").length === 0) {
-                    var firstDrawing = true;
-                } else {
-                    var firstDrawing = false;
-                }
-
-                console.log(country);
                 var countrydata = [];
 
                 for(var row in country['unemploymentData']) {
@@ -416,78 +526,9 @@
                     }
                 }
 
-                console.log(countrydata);
-
-                var margin = {top: 20, right: 20, bottom: 30, left: 50},
-                width = 500 - margin.left - margin.right,
-                height = 300 - margin.top - margin.bottom;
+                updateData(countrydata);
 
 
-                var xgraph = d3.scale.linear()
-                    .range([0, width]);
-
-                var ygraph = d3.scale.linear()
-                    .range([height, 0]);
-
-                var xAxisLine = d3.svg.axis()
-                    .scale(xgraph)
-                    .orient("bottom")
-                    .tickFormat(d3.format("d"));
-
-                var yAxisLine = d3.svg.axis()
-                    .scale(ygraph)
-                    .tickFormat(function(d) { return parseFloat(d, 10) + "%"; })
-                    .orient("left");
-
-                var line = d3.svg.line()
-                    .x(function(d) { return xgraph(d.year); })
-                    .y(function(d) { return ygraph(d.value); });
-
-                xgraph.domain([2000,2015]);
-
-                ygraph.domain([0, d3.max(countrydata, function(d) {
-                    console.log(d.value);
-                    return d.value; })]).nice();
-
-                if(firstDrawing) {
-                    var graph = d3.select(".aGraph").append("svg")
-                        .attr("class", "linegraph")
-                        .attr("width", width + margin.left + margin.right)
-                        .attr("height", height + margin.top + margin.bottom)
-                      .append("g")
-                        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-
-                    graph.append("g")
-                      .attr("class", "xgraph axis")
-                      .attr("transform", "translate(0," + height + ")")
-                      .call(xAxisLine);
-
-                      graph.append("g")
-                          .attr("class", "ygraph axis")
-                          .call(yAxisLine)
-                        .append("text")
-                          .attr("transform", "rotate(-90)")
-                          .attr("ygraph", 6)
-                          .attr("dy", ".71em")
-                          .style("text-anchor", "end")
-                          .text("Population");
-
-                      graph.append("path")
-                          .datum(countrydata)
-                          .attr("class", "line")
-                          .attr("d", line);
-                    updateData(countrydata);
-                } else {
-                    updateData(countrydata);
-                }
-
-                 // xgraph.domain(d3.extent(countrydata, function(d) {
-
-                 //    return d['year']; }));
-
-
-
-                // ygraph.domain([0,12]);
                  console.log(ygraph);
 
             }
@@ -495,7 +536,7 @@
             d3.select("#nYear").on("input", function() {
               updateYear(+this.value);
             });
-
+            drawLegend();
             updateYear(2000);
         });
 
