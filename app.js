@@ -291,8 +291,8 @@
             var w = 140, h = 400;
             var legend;
             var key = d3.select(".color-legend").append("svg").attr("width", w).attr("height", h);
-            var yLegend = d3.scale.linear().range([300, 0]).domain([0, 30]);
-            var yAxisLegend = d3.svg.axis().scale(yLegend).tickFormat(function(d) { return parseFloat(d, 10) + "%"; }).orient("left");
+            var yLegend;
+            var yAxisLegend;
 
 
             function updateLegend() {
@@ -339,8 +339,9 @@
                     }
 
                     yLegend = d3.scale.linear().range([300, 0]).domain([-maxVal, maxVal]);
-                    yAxisLegend = d3.svg.axis().scale(yLegend).tickFormat(function(d) { return parseFloat(d, 10) + "%"; }).orient("left");
-                    key.append("g").attr("class", "yLegend axis").attr("transform", "translate(40,10)").call(yAxisLegend).select("text").attr("transform", "rotate(-90)").attr("y", 50).attr("x", 300).attr("dy", ".71em").style("text-anchor", "end").text("Unemployment Rate");
+                    yAxisLegend = d3.svg.axis().scale(yLegend).tickFormat(function(d) { console.log(d); return parseFloat(d, 10) + "%"; }).orient("left");
+                    key.append("g").attr("class", "yLegend axis").attr("transform", "translate(40,10)").call(yAxisLegend);
+                    key.append("g").attr("class", "yLegend axis").attr("transform", "translate(40,10)").call(yAxisLegend).append("text").attr("transform", "rotate(-90)").attr("y", 50).attr("x", 300).attr("dy", ".71em").style("text-anchor", "end").text("Increase");
                 }
             }
 
