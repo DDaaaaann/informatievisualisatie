@@ -99,7 +99,7 @@
         } else if (Math.abs(max) > Math.abs(min) && max > 0) {
             min = max * -1;
             var oldRange = max - min;
-        } 
+        }
 
         var newRange = 1 - 0;
         var newValue = (((value - min) * newRange) / oldRange) + 0;
@@ -159,9 +159,13 @@
                     }
                 }
                 var maxEU = d3.max(euUnion, function(d) {
-                        return d.value; });
+                        console.log(d.value)
+                        console.log("max")
+                        return parseFloat(d.value); });
+                console.log(maxEU)
 
-
+            var minTrend = 0;
+            var maxTrend = 0;
 
             var marginGraph = {top: 30, right: 20, bottom: 30, left: 50},
                 widthGraph = 500 - marginGraph.left - marginGraph.right,
@@ -246,16 +250,15 @@
 
             function updateTrend(year1, year2) {
                 d3.select(".range-value").style("font-size", "11px").text(year1 + " - " + year2);
-                var min = 0;
-                var max = 0;
+
 
                 countries.forEach(function(d) {
                     if (d.hasOwnProperty('unemploymentData') &&
                         d['unemploymentData'][year1][0]['Value'] !== ":" &&
                         d['unemploymentData'][year2][0]['Value'] !== ":") {
                         var diff = parseFloat((parseFloat(d['unemploymentData'][year2][0]['Value']) - parseFloat(d['unemploymentData'][year1][0]['Value'])).toPrecision(2));
-                        max = Math.max(diff, max);
-                        min = Math.min(diff, min);
+                        maxTrend = Math.max(diff, maxTrend);
+                        minTrend = Math.min(diff, minTrend);
                     }
                 });
 
@@ -266,7 +269,7 @@
                         if (d.hasOwnProperty('unemploymentData')) {
                             if (d['unemploymentData'][year1][0]['Value'] !== ":" && d['unemploymentData'][year2][0]['Value'] !== ":") {
                                 var diff = parseFloat((parseFloat(d['unemploymentData'][year2][0]['Value']) - parseFloat(d['unemploymentData'][year1][0]['Value'])).toPrecision(2));
-                                return getTrendColor(diff, min, max);
+                                return getTrendColor(diff, minTrend, maxTrend);
                             } else {
                                 return "black";
                             }
@@ -276,35 +279,69 @@
                     });
 
                 paths.classed("eu-country", isEuCountry);
-
+                updateLegend();
                 // svg.selectAll("path")
                 //     .style("fill", "grey");
             }
 
-            function drawLegend() {
 
-                var w = 140, h = 400;
 
-                var key = d3.select(".color-legend").append("svg").attr("width", w).attr("height", h);
+            // Drawing gradient legend for map
 
+            var w = 140, h = 400;
+            var legend;
+            var key = d3.select(".color-legend").append("svg").attr("width", w).attr("height", h);
+            var yLegend = d3.scale.linear().range([300, 0]).domain([0, 30]);
+            var yAxisLegend = d3.svg.axis().scale(yLegend).tickFormat(function(d) { return parseFloat(d, 10) + "%"; }).orient("left");
+
+
+            function updateLegend() {
                 if ($("#typeSelect").val() === "peryear") {
+                    console.log("updateLegend")
+                    key.selectAll("g.axis").remove();
+                    key.selectAll("defs").remove();
+                    key.selectAll("rect").remove();
                     for (var i = 0; i < 30; i+=5) {
-                        console.log(i)
-                        var legend = key.append("defs").append("svg:linearGradient").attr("id", "gradient").attr("x1", "100%").attr("y1", "0%").attr("x2", "100%").attr("y2", "100%").attr("spreadMethod", "pad");
+
+                        legend = key.append("defs").append("svg:linearGradient").attr("id", "gradient").attr("x1", "100%").attr("y1", "0%").attr("x2", "100%").attr("y2", "100%").attr("spreadMethod", "pad");
                         legend.append("stop").attr("offset", "0%").attr("stop-color", getColor(i+5)).attr("stop-opacity", 1);
 
                         legend.append("stop").attr("offset", "100%").attr("stop-color", getColor(i)).attr("stop-opacity", 1);
 
                         key.append("rect").attr("width", w - 100).attr("height", 50).attr("x", 40).attr("y", 250-i*10).style("fill", "url(#gradient)").attr("transform", "translate(0, 10)");
-                    };
+                    }
+
+                    yLegend = d3.scale.linear().range([300, 0]).domain([0, 30]);
+                    yAxisLegend = d3.svg.axis().scale(yLegend).tickFormat(function(d) { return parseFloat(d, 10) + "%"; }).orient("left");
+                    key.append("g").attr("class", "yLegend axis").attr("transform", "translate(40,10)").call(yAxisLegend).append("text").attr("transform", "rotate(-90)").attr("y", 50).attr("dy", ".71em").style("text-anchor", "end").text("Unemployment Rate");
+
+
+
+                } else {
+                    key.selectAll("g.axis").remove();
+                    key.selectAll("defs").remove();
+                    key.selectAll("rect").remove();
+                    for (var j = 0; j < 120; j+=1) {
+                        legend = key.append("defs").append("svg:linearGradient").attr("id", "gradient").attr("x1", "100%").attr("y1", "0%").attr("x2", "100%").attr("y2", "100%").attr("spreadMethod", "pad");
+                        legend.append("stop").attr("offset", "0%").attr("stop-color", ["hsl(",j-0.5,",100%,40%)"].join("")).attr("stop-opacity", 1);
+
+                        legend.append("stop").attr("offset", "100%").attr("stop-color", ["hsl(",j + 0.5,",100%,40%)"].join("")).attr("stop-opacity", 1);
+
+                        key.append("rect").attr("width", w - 100).attr("height", 3).attr("x", 40).attr("y",  j*(300/120)).style("fill", "url(#gradient)").attr("transform", "translate(0, 10)");
+                    }
+
+                    var maxVal;
+
+                    if (Math.abs(minTrend) >= Math.abs(maxTrend) && minTrend < 0) {
+                         maxVal = Math.abs(minTrend);
+                    } else if (Math.abs(maxTrend) > Math.abs(minTrend) && maxTrend > 0) {
+                         maxVal = maxTrend;
+                    }
+
+                    yLegend = d3.scale.linear().range([300, 0]).domain([-maxVal, maxVal]);
+                    yAxisLegend = d3.svg.axis().scale(yLegend).tickFormat(function(d) { return parseFloat(d, 10) + "%"; }).orient("left");
+                    key.append("g").attr("class", "yLegend axis").attr("transform", "translate(40,10)").call(yAxisLegend).select("text").attr("transform", "rotate(-90)").attr("y", 50).attr("x", 300).attr("dy", ".71em").style("text-anchor", "end").text("Unemployment Rate");
                 }
-
-
-                var yLegend = d3.scale.linear().range([300, 0]).domain([0, 30]);
-
-                var yAxisLegend = d3.svg.axis().scale(yLegend).tickFormat(function(d) { return parseFloat(d, 10) + "%"; }).orient("left");
-
-                key.append("g").attr("class", "yLegend axis").attr("transform", "translate(40,10)").call(yAxisLegend).append("text").attr("transform", "rotate(-90)").attr("y", 50).attr("dy", ".71em").style("text-anchor", "end").text("Unemployment Rate");
             }
 
 
@@ -563,10 +600,11 @@
 
 
 
-            var previousCountry;
-            var previousname;
+            var previousCountry = euUnion;
+            var previousname = "Europe";
             function drawChart(country) {
                 var name = country['properties']['name'];
+
                 function updateData1(countrydata) {
                     var graph = d3.select(".aGraph").transition();
 
@@ -657,9 +695,6 @@
 
                 previousCountry = countrydata;
                 previousname = name;
-
-                 console.log(ygraph);
-
             }
 
 
@@ -668,10 +703,12 @@
                 if ($("#typeSelect").val() === "peryear") {
                     updateYear(+$(".per-year-slider").val());
                     $('#header-title').text("Unemployment in europe in the year:");
+                    updateLegend();
                 } else if ($("#typeSelect").val() === "trend") {
                     var trendvalues = $(".trend-slider").val();
                     updateTrend(parseInt(trendvalues[0]), parseInt(trendvalues[1]));
                     $('#header-title').text("Unemployment trend in europe in the period:");
+                    updateLegend();
                 }
 
                 $('.per-year-slider').toggle();
@@ -686,7 +723,7 @@
                 var trendvalues = $(".trend-slider").val();
                 updateTrend(parseInt(trendvalues[0]), parseInt(trendvalues[1]));
             });
-            drawLegend();
+            updateLegend();
             updateYear(2000);
         });
 
