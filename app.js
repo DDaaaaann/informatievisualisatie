@@ -112,7 +112,6 @@
     function getColor(value){
 
         //value from 0 to 1
-        // var hue=((1-(4/value))*100).toString(10);
         var hue=((150*(value/30))+20).toString(10);
         // of > 0
         if(hue > -1) {
@@ -129,9 +128,6 @@
         var euUnion = [];
         var eu = topojson.feature(europe, europe.objects.europe),
             countries = eu.features;
-
-        // console.log(countries)
-
 
         d3.csv("unemployment/Unemployment.csv", function(error, data) {
             eu = topojson.feature(europe, europe.objects.europe),
@@ -159,10 +155,7 @@
                     }
                 }
                 var maxEU = d3.max(euUnion, function(d) {
-                        console.log(d.value)
-                        console.log("max")
                         return parseFloat(d.value); });
-                console.log(maxEU)
 
             var minTrend = 0;
             var maxTrend = 0;
@@ -297,10 +290,10 @@
 
             function updateLegend() {
                 if ($("#typeSelect").val() === "peryear") {
-                    console.log("updateLegend")
                     key.selectAll("g.axis").remove();
                     key.selectAll("defs").remove();
                     key.selectAll("rect").remove();
+
                     for (var i = 0; i < 30; i+=5) {
 
                         legend = key.append("defs").append("svg:linearGradient").attr("id", "gradient").attr("x1", "100%").attr("y1", "0%").attr("x2", "100%").attr("y2", "100%").attr("spreadMethod", "pad");
@@ -339,7 +332,7 @@
                     }
 
                     yLegend = d3.scale.linear().range([300, 0]).domain([-maxVal, maxVal]);
-                    yAxisLegend = d3.svg.axis().scale(yLegend).tickFormat(function(d) { console.log(d); return parseFloat(d, 10) + "%"; }).orient("left");
+                    yAxisLegend = d3.svg.axis().scale(yLegend).tickFormat(function(d) { return parseFloat(d, 10) + "%"; }).orient("left");
                     key.append("g").attr("class", "yLegend axis").attr("transform", "translate(40,10)").call(yAxisLegend);
                     key.append("g").attr("class", "yLegend axis").attr("transform", "translate(40,10)").call(yAxisLegend).append("text").attr("transform", "rotate(-90)").attr("y", 50).attr("x", 300).attr("dy", ".71em").style("text-anchor", "end").text("Increase");
                 }
@@ -593,7 +586,6 @@
                             .style("opacity", 0);
                     })
                     .on("click", function(d) {
-                        console.log(d);
                         drawChart(d);
                     });
                 }
@@ -604,7 +596,6 @@
             var previousCountry = euUnion;
             var previousname = "Europe";
             function drawChart(country) {
-
                 if (country['properties']['name'] === "Germany (until 1990 former territory of the FRG)") {
                     var name = "Germany";
                 } else {
@@ -685,8 +676,6 @@
                 var countrydata = [];
 
                 for(var row in country['unemploymentData']) {
-                    console.log("row");
-                    console.log(country['unemploymentData'][row][0]['Value']);
                     if(!isNaN(country['unemploymentData'][row][0]['Value'])) {
                         countrydata.push({year: parseInt(row), value: parseFloat(country['unemploymentData'][row][0]['Value'])});
                     }
