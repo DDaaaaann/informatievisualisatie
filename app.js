@@ -137,32 +137,30 @@
             eu = topojson.feature(europe, europe.objects.europe),
                     countries = eu.features;
 
-                for (var i = 0; i < data.length; i += 9) {
-                    for (var j = 0; j < countries.length; j++) {
-                        if (countries[j]['properties']['name'] === data[i]['GEO']) {
+            for (var i = 0; i < data.length; i += 9) {
+                for (var j = 0; j < countries.length; j++) {
+                    if (countries[j]['properties']['name'] === data[i]['GEO']) {
 
-                            if (!countries[j].hasOwnProperty('unemploymentData')) {
-                                countries[j].unemploymentData = [];
+                        if (!countries[j].hasOwnProperty('unemploymentData')) {
+                            countries[j].unemploymentData = [];
 
-                            }
-                            countries[j].unemploymentData[data[i]['TIME']] = [9];
-                            for (var k = i; k < i + 9; k++) {
-                                countries[j].unemploymentData[data[i]['TIME']][k - i] = data[k];
-                            }
+                        }
+                        countries[j].unemploymentData[data[i]['TIME']] = [9];
+                        for (var k = i; k < i + 9; k++) {
+                            countries[j].unemploymentData[data[i]['TIME']][k - i] = data[k];
                         }
                     }
                 }
+            }
 
-                for (var i = 0; i < data.length; i += 9) {
-                    if (data[i]['GEO'] === 'European Union (28 countries)') {
-                        euUnion.push({year: data[i]['TIME'], value: data[i]['Value']});
-                    }
+            for (var i = 0; i < data.length; i += 9) {
+                if (data[i]['GEO'] === 'European Union (28 countries)') {
+                    euUnion.push({year: data[i]['TIME'], value: data[i]['Value']});
                 }
-                var maxEU = d3.max(euUnion, function(d) {
-                        console.log(d.value)
-                        console.log("max")
-                        return parseFloat(d.value); });
-                console.log(maxEU)
+            }
+
+            var maxEU = d3.max(euUnion, function(d) {return parseFloat(d.value); });
+
 
             var minTrend = 0;
             var maxTrend = 0;
@@ -193,7 +191,7 @@
                 .y(function(d) { return ygraph(d.value); });
 
             xgraph.domain([2000,2015]);
-            ygraph.domain([0,maxEU+10]).nice();
+            ygraph.domain([0,maxEU]).nice();
 
             var graph = d3.select(".aGraph").append("svg")
                         .attr("class", "linegraph")
@@ -340,8 +338,7 @@
 
                     yLegend = d3.scale.linear().range([300, 0]).domain([-maxVal, maxVal]);
                     yAxisLegend = d3.svg.axis().scale(yLegend).tickFormat(function(d) { console.log(d); return parseFloat(d, 10) + "%"; }).orient("left");
-                    key.append("g").attr("class", "yLegend axis").attr("transform", "translate(40,10)").call(yAxisLegend);
-                    key.append("g").attr("class", "yLegend axis").attr("transform", "translate(40,10)").call(yAxisLegend).append("text").attr("transform", "rotate(-90)").attr("y", 50).attr("x", 300).attr("dy", ".71em").style("text-anchor", "end").text("Increase");
+                    key.append("g").attr("class", "yLegend axis").attr("transform", "translate(40,10)").call(yAxisLegend).append("text").attr("transform", "rotate(-90)").attr("y", 50).attr("x", 0).attr("dy", ".71em").style("text-anchor", "end").text("Unemployment Difference");
                 }
             }
 
