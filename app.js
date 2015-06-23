@@ -250,7 +250,7 @@
 
             function updateTrend(year1, year2) {
                 d3.select(".range-value").style("font-size", "11px").text(year1 + " - " + year2);
-
+                minTrend = maxTrend = 0;
 
                 countries.forEach(function(d) {
                     if (d.hasOwnProperty('unemploymentData') &&
