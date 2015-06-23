@@ -60,15 +60,15 @@
       display: none;
     }
 
-    .line {
-      fill: none;
-      stroke: steelblue;
-      stroke-width: 1.5px;
-    }
-
     .EUline {
       fill: none;
       stroke: red;
+      stroke-width: 1.5px;
+    }
+
+    .line {
+      fill: none;
+      stroke: steelblue;
       stroke-width: 1.5px;
     }
 
@@ -86,43 +86,10 @@
         fill: lightgray;
     }
 
-    input[type='range'] {
-        -webkit-appearance: none;
-        border-radius: 5px;
-        background-color: #999;
-        height: 5px;
-        vertical-align: middle;
-        width: 250px;
-        outline: none;
-        margin: 10px;
-    }
-
     .range-container {
       width: 295px;
       display: inline-block;
-      margin-left: 10px;
-    }
-
-      .range-container span {
-        font: 10px sans-serif;
-        color: black;
-      }
-
-      .range-container .left {
-        float: left;
-      }
-
-      .range-container .right {
-        float: right;
-      }
-
-    input[type='range']::-webkit-slider-thumb {
-        -webkit-appearance: none !important;
-        border: 5px solid #999;
-        border-radius: 10px;
-        background-color: white;
-        height:20px;
-        width:20px;
+      margin-left: 30px;
     }
 
     .range-value {
@@ -137,7 +104,7 @@
       background: #353535;
       padding: 5px 10px;
       margin-left: 7px;
-
+    
       &:after {
         position: absolute;
         top: 8px;
@@ -165,37 +132,22 @@
           <span id="header-title">
             Unemployment in europe in the year:
           </span>
-          <!-- <span class="range-value"></span> -->
-
-          <!-- <div class="range-container">
-            <span class="left">2000</span><span class="right">2014</span>
-            <input type="range" min="2000" max="2014" id="nYear">
-          </div> -->
-
+          <span class="range-value"></span>
           <select id="typeSelect">
             <option value="peryear">Per year</option>
             <option value="trend">Trend</option>
         </select>
-
         </div>
-
-      </p>
-      <!-- <div id="graph" class="aGraph" style="position:absolute;top:0px;left:0; float:left;"></div> -->
-    </div>
-    <div id="graph" class="aGraph" style="position:absolute;top:80px;left:770px; float:left;"></div>
-    <div class="color-legend" style="position:absolute;top:320px;left:20px; float:left;"></div>
-    <script src="d3/d3.js"></script>
-    <script src="topojson-master/topojson.js"></script>
-
         <div class="range-container">
           <div class="per-year-slider"></div>
           <div class="trend-slider" style="display:none;"></div>
           <!-- <span class="left">2000</span><span class="right">2014</span>
           <input type="range" min="2000" max="2014" id="nYear"> -->
-        </div>
+        </div>  
       </div>
+      <div id="graph" class="aGraph" style="position:absolute;top:80px;left:770px; float:left;"></div>
+      <div class="color-legend" style="position:absolute;top:320px;left:20px; float:left;"></div>
     </div>
-
     <script src="app.js"></script>
     <script>
       $(function() {

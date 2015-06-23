@@ -603,7 +603,12 @@
             var previousCountry = euUnion;
             var previousname = "Europe";
             function drawChart(country) {
-                var name = country['properties']['name'];
+
+                if (country['properties']['name'] === "Germany (until 1990 former territory of the FRG)") {
+                    var name = "Germany";
+                } else {
+                    var name = country['properties']['name'];
+                }
 
                 function updateData1(countrydata) {
                     var graph = d3.select(".aGraph").transition();
