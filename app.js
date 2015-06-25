@@ -301,7 +301,7 @@
                         });
 
                     paths.classed("eu-country", isEuCountry);
-                }    
+                }
             }
 
             function updateYear(nYear) {
@@ -576,6 +576,9 @@
                     /* Hide the 'no data' message */
                     noDataDiv.style("display", "none");
 
+                    /* Show the 'average per country' message */
+                    averagePerCountry.style("display", "block");
+
                     div.transition()
                         .duration(200)
                         .style("opacity", .9);
@@ -593,12 +596,16 @@
 
                     /* Calculate difference */
                     var diff = parseFloat((parseFloat(d['unemploymentData'][year2][0]['Value']) - parseFloat(d['unemploymentData'][year1][0]['Value'])).toPrecision(2));
+                    console.log(diff);
 
                     /* Depending on positive or negative values, show increase or decrease */
                     if (diff > 0.0) {
                         averagePerCountry.text("Unemployment trend development for " + countryName + " in the period " + year1 + " - " + year2 + ": " + diff + "% increase");
                     } else if (diff <= 0.0) {
                         averagePerCountry.text("Unemployment trend development for " + countryName + " in the period " + year1 + " - " + year2 + ": " + diff * -1.0 + "% decrease");
+                    } else if (isNaN(diff)) {
+                        averagePerCountry.style("display", "none");
+                        noDataDiv.style("display", "block");
                     }
                 }
 
