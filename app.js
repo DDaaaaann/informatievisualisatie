@@ -141,6 +141,7 @@
 
 
 
+    // http://blog.mondula.com/mapping-minimum-wages-europe
     d3.json("eu.json", function (error, europe) {
         if (error) return console.error(error);
         var euUnion = [];
