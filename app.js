@@ -122,16 +122,15 @@
         var newRange = 1 - 0;
         var newValue = (((value - min) * newRange) / oldRange) + 0;
 
-        //value from 0 to 1
         var hue = ((1 - newValue) * 120).toString(10);
         return ["hsl(",hue,",100%,40%)"].join("");
     }
 
+    /* Returns a color for the per year map based on the percentage.
+     * The range is [0, max] where max is the highest percentage of all years */
     function getColor(value){
-
-        //value from 0 to 1
         var hue=((150*(value/30))+20).toString(10);
-        // of > 0
+
         if(hue > -1) {
             return ["hsl(3,",hue,"%,",80-hue/3,"%)"].join("");
         } else {
@@ -139,18 +138,21 @@
         }
     }
 
-
-
+    /*************************/
+    /*    Data processing    */
+    /*************************/
     d3.json("eu.json", function (error, europe) {
         if (error) return console.error(error);
         var euUnion = [];
         var eu = topojson.feature(europe, europe.objects.europe),
             countries = eu.features;
 
+        /* Load the CSV file */
         d3.csv("unemployment/Unemployment.csv", function(error, data) {
             eu = topojson.feature(europe, europe.objects.europe),
                     countries = eu.features;
 
+            /* For all countries in the CSV file, add the unemployment data to the appropriate element in the object */
             for (var i = 0; i < data.length; i += 9) {
                 for (var j = 0; j < countries.length; j++) {
                     if (countries[j]['properties']['name'] === data[i]['GEO']) {
@@ -173,15 +175,16 @@
                 }
             }
 
-            var maxEU = d3.max(euUnion, function(d) {return parseFloat(d.value); });
+            /* Find the maximum value of all years and countries for the line graph */
+            var maxEU = d3.max(euUnion, function(d) { return parseFloat(d.value); });
 
             var minTrend = 0;
             var maxTrend = 0;
 
+            /* Initialise the line graph elements */
             var marginGraph = {top: 30, right: 20, bottom: 30, left: 50},
                 widthGraph = 500 - marginGraph.left - marginGraph.right,
                 heightGraph = 300 - marginGraph.top - marginGraph.bottom;
-
 
             var xgraph = d3.scale.linear()
                 .range([0, widthGraph]);
@@ -206,6 +209,7 @@
             xgraph.domain([2000,2015]);
             ygraph.domain([0,maxEU]).nice();
 
+            /* Draw the line chart */
             var graph = d3.select(".aGraph").append("svg")
                         .attr("class", "linegraph")
                         .attr("width", widthGraph + marginGraph.left + marginGraph.right)
@@ -213,66 +217,72 @@
                       .append("g")
                         .attr("transform", "translate(" + marginGraph.left + "," + marginGraph.top + ")");
 
-                    graph.append("g")
-                      .attr("class", "xgraph axis")
-                      .attr("transform", "translate(0," + heightGraph + ")")
-                      .call(xAxisLine);
+            graph.append("g")
+              .attr("class", "xgraph axis")
+              .attr("transform", "translate(0," + heightGraph + ")")
+              .call(xAxisLine);
 
-                    graph.append("g")
-                        .attr("class", "ygraph axis")
-                        .call(yAxisLine)
-                      .append("text")
-                        .attr("transform", "rotate(-90)")
-                        .attr("ygraph", 6)
-                        .attr("dy", ".71em")
-                        .style("text-anchor", "end")
-                        .text("Population");
+            graph.append("g")
+                .attr("class", "ygraph axis")
+                .call(yAxisLine)
+              .append("text")
+                .attr("transform", "rotate(-90)")
+                .attr("ygraph", 6)
+                .attr("dy", ".71em")
+                .style("text-anchor", "end")
+                .text("Population");
 
-                    graph.append("path")
-                        .attr("class", "line");
+            graph.append("path")
+                .attr("class", "line");
 
-                    graph.append("path")
-                        .datum(euUnion)
-                        .attr("class", "EUline")
-                        .attr("d", line);
+            graph.append("path")
+                .datum(euUnion)
+                .attr("class", "EUline")
+                .attr("d", line);
 
-                    var graphTitle = graph.append("text")
-                        .attr("x", (widthGraph / 2))
-                        .attr("y", -10 - (marginGraph.top / 4))
-                        .attr("text-anchor", "middle")
-                        .style("font-size", "16px")
-                        .style("font-family", "sans-serif");
+            var graphTitle = graph.append("text")
+                .attr("x", (widthGraph / 2))
+                .attr("y", -10 - (marginGraph.top / 4))
+                .attr("text-anchor", "middle")
+                .style("font-size", "16px")
+                .style("font-family", "sans-serif");
 
-                        graphTitle.append("svg:tspan").attr("class", "europe").style("fill", "red").text("Europe");
-                        graphTitle.append("svg:tspan").attr("class", "vs").style("fill", "black").text("");
-                        graphTitle.append("svg:tspan").attr("class", "country").style("fill", "steelblue").text("");
-
-
+            graphTitle.append("svg:tspan").attr("class", "europe").style("fill", "red").text("Europe");
+            graphTitle.append("svg:tspan").attr("class", "vs").style("fill", "black").text("");
+            graphTitle.append("svg:tspan").attr("class", "country").style("fill", "steelblue").text("");
 
             updateMap(countries, year);
 
+            /*************************/
+            /*  Update per year map  */
+            /*************************/
             function updateYear(nYear) {
-                // adjust the text on the range slider
+                /* Update the year box with the correct values */
                 d3.select(".range-value").style("font-size", "20px").text(nYear);
-                // $('.slider').val(nYear);
-                year = nYear;
-                updateMap(countries, year);
+                updateMap(countries, nYear);
             }
 
+            /*************************/
+            /*    Update trend map   */
+            /*************************/
             function updateTrend(year1, year2) {
+                /* Update the range box with the correct values */
                 d3.select(".range-value").style("font-size", "11px").text(year1 + " - " + year2);
                 minTrend = maxTrend = 0;
 
+                /* If the country has data for this year range, calculate the difference in percentages */
                 countries.forEach(function(d) {
                     if (d.hasOwnProperty('unemploymentData') &&
                         d['unemploymentData'][year1][0]['Value'] !== ":" &&
                         d['unemploymentData'][year2][0]['Value'] !== ":") {
                         var diff = parseFloat((parseFloat(d['unemploymentData'][year2][0]['Value']) - parseFloat(d['unemploymentData'][year1][0]['Value'])).toPrecision(2));
+                        /* Min and max are calculated to append the right colors to the countries */
                         maxTrend = Math.max(diff, maxTrend);
                         minTrend = Math.min(diff, minTrend);
                     }
                 });
 
+                /* Update the paths with the new colors */
                 var paths = d3.selectAll("svg.countries-svg path").data(countries);
                 paths.transition()
                     .duration(250)
@@ -290,73 +300,68 @@
                     });
 
                 paths.classed("eu-country", isEuCountry);
+
+                /* Update the legend with the new percentage range */
                 updateLegend();
-                // svg.selectAll("path")
-                //     .style("fill", "grey");
             }
 
-
-
-            // Drawing gradient legend for map
-
+            /*************************/
+            /*  Update trend legend  */
+            /*************************/
+            /* Variables for the legend */
             var w = 140, h = 400;
             var legend;
             var key = d3.select(".color-legend").append("svg").attr("width", w).attr("height", h);
             var yLegend;
             var yAxisLegend;
 
-
+            /* When the trend map is updated, this function updates the percentage range for the legend.
+             * For the per year map, nothing is actually updated as the legend remains the same */
             function updateLegend() {
                 if ($("#typeSelect").val() === "peryear") {
                     key.selectAll("g.axis").remove();
                     key.selectAll("defs").remove();
                     key.selectAll("rect").remove();
 
+                    /* Step by step gradient SVGs for a smooth gradient */
                     for (var i = 0; i < 30; i+=5) {
-
                         legend = key.append("defs").append("svg:linearGradient").attr("id", "gradient").attr("x1", "100%").attr("y1", "0%").attr("x2", "100%").attr("y2", "100%").attr("spreadMethod", "pad");
                         legend.append("stop").attr("offset", "0%").attr("stop-color", getColor(i+5)).attr("stop-opacity", 1);
-
                         legend.append("stop").attr("offset", "100%").attr("stop-color", getColor(i)).attr("stop-opacity", 1);
-
                         key.append("rect").attr("width", w - 100).attr("height", 50).attr("x", 40).attr("y", 250-i*10).style("fill", "url(#gradient)").attr("transform", "translate(0, 10)");
                     }
 
                     yLegend = d3.scale.linear().range([300, 0]).domain([0, 30]);
                     yAxisLegend = d3.svg.axis().scale(yLegend).tickFormat(function(d) { return parseFloat(d, 10) + "%"; }).orient("left");
                     key.append("g").attr("class", "yLegend axis").attr("transform", "translate(40,10)").call(yAxisLegend).append("text").attr("transform", "rotate(-90)").attr("y", 50).attr("dy", ".71em").style("text-anchor", "end").text("Unemployment Rate");
-
-
-
                 } else {
+                    /* Remove all existing gradient elements */
                     key.selectAll("g.axis").remove();
                     key.selectAll("defs").remove();
                     key.selectAll("rect").remove();
+
+                    /* Redraw the gradient elements step by step */
                     for (var j = 0; j < 120; j+=1) {
                         legend = key.append("defs").append("svg:linearGradient").attr("id", "gradient").attr("x1", "100%").attr("y1", "0%").attr("x2", "100%").attr("y2", "100%").attr("spreadMethod", "pad");
                         legend.append("stop").attr("offset", "0%").attr("stop-color", ["hsl(",j-0.5,",100%,40%)"].join("")).attr("stop-opacity", 1);
-
                         legend.append("stop").attr("offset", "100%").attr("stop-color", ["hsl(",j + 0.5,",100%,40%)"].join("")).attr("stop-opacity", 1);
-
                         key.append("rect").attr("width", w - 100).attr("height", 3).attr("x", 40).attr("y",  j*(300/120)).style("fill", "url(#gradient)").attr("transform", "translate(0, 10)");
                     }
 
+                    /* Find the maximum value */
                     var maxVal;
-
                     if (Math.abs(minTrend) >= Math.abs(maxTrend) && minTrend < 0) {
                          maxVal = Math.abs(minTrend);
                     } else if (Math.abs(maxTrend) > Math.abs(minTrend) && maxTrend > 0) {
                          maxVal = maxTrend;
                     }
 
+                    /* Draw the tick values */
                     yLegend = d3.scale.linear().range([300, 0]).domain([-maxVal, maxVal]);
                     yAxisLegend = d3.svg.axis().scale(yLegend).tickFormat(function(d) { return parseFloat(d, 10) + "%"; }).orient("left");
                     key.append("g").attr("class", "yLegend axis").attr("transform", "translate(40,10)").call(yAxisLegend).append("text").attr("transform", "rotate(-90)").attr("y", 50).attr("x", 0).attr("dy", ".71em").style("text-anchor", "end").text("Unemployment Difference");
                 }
             }
-
-
-
 
             function updateMap(countries, year){
                 var firstDrawing;
