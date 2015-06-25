@@ -1,35 +1,42 @@
 (function () {
     "use strict";
 
+    /*************************/
+    /*   SVG initalisation   */
+    /*************************/
     var svg;
     var line;
     var year = 2000;
     var width = 1000,
         height = 700;
 
-    // To scale and translate map
     var projection = d3.geo.mercator()
         .scale(600)
         .translate([width/2 - 220, height/2 +600]);
 
+    var path = d3.geo.path().projection(projection);
+
+    /*************************/
+    /*   Tooltip elements    */
+    /*************************/
     var div = d3.select("body").append("div")
         .attr("class", "tooltip")
         .style("opacity", 0);
 
+    /* For EU countries without data for this year */
     var noDataDiv = div.append("div")
         .attr("class", "nodata")
         .text("No data is available for this country and year")
         .style("display", "hidden")
         .style("color", "black");
 
+    /* Shows the average unemployment for a year in the default map */
     var averagePerCountry = div.append("div")
         .attr("class", "averagepercountry")
         .style("color", "black");
 
     var barColor = d3.scale.ordinal()
         .range(["#8dd3c7", "#80b1d3", "#fb8072"]);
-
-    var path = d3.geo.path().projection(projection);
 
     var margin = {top: 20, right: 70, bottom: 10, left: 30},
         barWidth = 330 - margin.left - margin.right,
@@ -52,7 +59,10 @@
         .orient("left")
         .tickFormat(function(d) { return parseInt(d, 10) + "%"; });
 
-    // http://blog.mondula.com/mapping-minimum-wages-europe#comment-21
+    /*************************/
+    /*   EU country tools    */
+    /*************************/
+    /* http://blog.mondula.com/mapping-minimum-wages-europe#comment-21 */
     var eu = [
         40, // Austria
         56, // Belgium
@@ -87,11 +97,19 @@
         826 // United Kingdom
     ];
 
+    /* Checks whether a country belongs to the EU */
     function isEuCountry(datum) {
         var code = parseInt(datum.properties.iso_n3, 10);
         return eu.indexOf(code) > -1;
     }
 
+    /*************************/
+    /*    Color functions    */
+    /*************************/
+    /* http://stackoverflow.com/questions/7128675/from-green-to-red-color-depend-on-percentage */
+
+    /* Returns a color for the trend map based on the percentage. 
+     * The range is [-max, max] where max is the greater of abs(min) and max */
     function getTrendColor(value, min, max) {
         if (Math.abs(min) >= Math.abs(max) && min < 0) {
             max = Math.abs(min);
