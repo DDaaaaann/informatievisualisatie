@@ -108,7 +108,7 @@
     /*************************/
     /* http://stackoverflow.com/questions/7128675/from-green-to-red-color-depend-on-percentage */
 
-    /* Returns a color for the trend map based on the percentage. 
+    /* Returns a color for the trend map based on the percentage.
      * The range is [-max, max] where max is the greater of abs(min) and max */
     function getTrendColor(value, min, max) {
         if (Math.abs(min) >= Math.abs(max) && min < 0) {
@@ -255,7 +255,6 @@
             function updateYear(nYear) {
                 // adjust the text on the range slider
                 d3.select(".range-value").style("font-size", "20px").text(nYear);
-                // $('.slider').val(nYear);
                 year = nYear;
                 updateMap(countries, year);
             }
@@ -292,8 +291,6 @@
 
                 paths.classed("eu-country", isEuCountry);
                 updateLegend();
-                // svg.selectAll("path")
-                //     .style("fill", "grey");
             }
 
 
@@ -359,9 +356,12 @@
 
 
 
+
+            // Updates the unemployment values of the given year per country
             function updateMap(countries, year){
                 var firstDrawing;
 
+                // Determine if it's the first time drawing
                 if (document.getElementsByClassName("countries-svg").length === 0) {
 
                     svg = d3.select("#container").append("svg")
@@ -375,7 +375,7 @@
                     firstDrawing = false;
                 }
 
-
+                // Make a path for every country at the first drawing and assigne color
                 if (firstDrawing) {
 
                     svg.selectAll("path")
@@ -396,6 +396,7 @@
 
 
                 } else {
+                    // Alter the data when it's not the first drawing
                     var paths = d3.selectAll("svg.countries-svg path").data(countries);
                     paths.transition()
                         .duration(250)
@@ -610,9 +611,15 @@
 
 
 
+            /*************************/
+            /*       Line Graph      */
+            /*************************/
 
+            // set default value
             var previousCountry = euUnion;
             var previousname = "Europe";
+
+            // Draws the line chart given a country
             function drawChart(country) {
                 if (country['properties']['name'] === "Germany (until 1990 former territory of the FRG)") {
                     var name = "Germany";
@@ -620,11 +627,13 @@
                     var name = country['properties']['name'];
                 }
 
+                // Drawing graph in the 'per year' selection, plots a country vs average of europe
                 function updateData1(countrydata) {
                     var graph = d3.select(".aGraph").transition();
 
                     xgraph.domain([2000,2015]);
 
+                    // compair max values
                     var countryMax = d3.max(countrydata, function(d) {
                         return d.value; });
                     if(countryMax > maxEU) {
@@ -633,7 +642,7 @@
                         ygraph.domain([0, maxEU]).nice();
                     }
 
-
+                    // update the graph
                     graph.select(".EUline")   // change the line
                         .duration(750)
                         .attr("d", line(euUnion));
@@ -655,7 +664,8 @@
 
                 }
 
-
+                // Drawing graph in the 'trend' selection, plots a country vs another country
+                // country1 is the previous selected country
                 function updateData2(country1, country2, name1, name2) {
                     var graph = d3.select(".aGraph").transition();
 
@@ -666,13 +676,14 @@
                     var countryMax2 = d3.max(country2, function(d) {
                         return d.value; });
 
+                    // compair max values
                     if(countryMax1 > countryMax2) {
                         ygraph.domain([0, countryMax1]).nice();
                     } else {
                         ygraph.domain([0, countryMax2]).nice();
                     }
 
-
+                    // update the graph
                     graph.select(".EUline")   // change the line
                         .duration(750)
                         .attr("d", line(country1));
@@ -691,8 +702,9 @@
                     graphTitle.select(".country").text(name2);
                 }
 
-                var countrydata = [];
 
+                var countrydata = [];
+                // make an array with data of the country per year
                 for(var row in country['unemploymentData']) {
                     if(!isNaN(country['unemploymentData'][row][0]['Value'])) {
                         countrydata.push({year: parseInt(row), value: parseFloat(country['unemploymentData'][row][0]['Value'])});
@@ -706,6 +718,7 @@
                     updateData2(previousCountry, countrydata, previousname, name);
                 }
 
+                // initialize the previous country for 'updatedata2'
                 previousCountry = countrydata;
                 previousname = name;
             }
